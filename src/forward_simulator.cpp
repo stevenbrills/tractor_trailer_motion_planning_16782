@@ -10,7 +10,7 @@
 //Forward simuation parameters
 
 // forward lookahead radius
-double forward_lookahead_radius = 0.5;
+double forward_lookahead_radius = 1.0;
 
 // backward lookahead radius
 double backward_lookahead_radius = 1.0;
@@ -67,8 +67,8 @@ static bool find_intersection_point(
             std::cout << "No real roots" << std::endl;
         }
 
-        std::cout << "Determinant value could be near zero and fail equality, check performance " << std::endl;
-        std::cout << "Determinant value: " << det << std::endl;
+        // std::cout << "Determinant value could be near zero and fail equality, check performance " << std::endl;
+        // std::cout << "Determinant value: " << det << std::endl;
 
 
         if(det>=0){
@@ -76,7 +76,13 @@ static bool find_intersection_point(
             double t1 = ((-1*b) + sqrt(det))/(2*a);
             double t2 = ((-1*b) - sqrt(det))/(2*a);
 
+            // std::cout << t1 << " " << t2 << std::endl;
+
             if (check_double_equal(t1, t2)){
+
+                // std::cout << (piecewise_linear[1][0]*t1) + (1-t1)*piecewise_linear[0][0] << std::endl;
+                // std::cout << (piecewise_linear[1][1]*t1) + (1-t1)*piecewise_linear[0][1] << std::endl;
+
 
                 intersection_point[0] = (piecewise_linear[1][0]*t1) + (1-t1)*piecewise_linear[0][0];
                 intersection_point[1] = (piecewise_linear[1][1]*t1) + (1-t1)*piecewise_linear[0][1];
@@ -128,8 +134,8 @@ static bool find_intersection_point(
             std::cout << "No real roots" << std::endl;
         }
 
-        std::cout << "Determinant value could be near zero and fail equality, check performance " << std::endl;
-        std::cout << "Determinant value: " << det << std::endl;
+        // std::cout << "Determinant value could be near zero and fail equality, check performance " << std::endl;
+        // std::cout << "Determinant value: " << det << std::endl;
 
 
         if(det>=0){
@@ -195,6 +201,8 @@ std::vector<double> forward_simulator(
         throw std::runtime_error("No piecewise linear input has been reeived.");
     }
 
+    bool is_forward = false;
+
     int id_start = 0;
     int id_goal = 1;
 
@@ -203,7 +211,9 @@ std::vector<double> forward_simulator(
     // Find the intersection points of the lookahead circle and piecewise linear path
     std::vector<double> intersection_point(2,0);
 
-    find_intersection_point(q_init, piecewise_linear, id_start, id_goal, intersection_point);
+    find_intersection_point(q_init, piecewise_linear, id_start, id_goal, is_forward, intersection_point);
+
+    return q_current;
 
 
     // Use the flag to determine the right forward/backward lookahead
@@ -217,5 +227,56 @@ std::vector<double> forward_simulator(
 }
 
 
+int main(){
+
+    // Unit testing for find_intersection function
+    std::vector<double> q_current{0,0,1.57,0,0,0};
+    std::vector<std::vector<double>> piecewise_linear(2, std::vector<double>(2,0));
+    int id_start = 0;
+    int id_goal = 1;
+    bool is_forward =true;
+    std::vector<double> intersection_point(2,0);
+
+    piecewise_linear[0][0] = 1;
+    piecewise_linear[0][1] = -1;
+    piecewise_linear[1][0] = 1;
+    piecewise_linear[1][1] = 1;
+    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=1, y=0
+    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
+
+
+    piecewise_linear[0][0] = -1;
+    piecewise_linear[0][1] = -1;
+    piecewise_linear[1][0] = 1;
+    piecewise_linear[1][1] = 1;
+    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=0.707, y=0.707
+    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
+
+    piecewise_linear[0][0] = 1;
+    piecewise_linear[0][1] = 1;
+    piecewise_linear[1][0] = -1;
+    piecewise_linear[1][1] = -1;
+    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=-0.707, y=-0.707
+    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
+
+    piecewise_linear[0][0] = 0.5;
+    piecewise_linear[0][1] = -1;
+    piecewise_linear[1][0] = 0.5;
+    piecewise_linear[1][1] = 1;
+    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=0.5, y=0.866
+    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
+
+    piecewise_linear[0][0] = 0.5;
+    piecewise_linear[0][1] = 1;
+    piecewise_linear[1][0] = 0.5;
+    piecewise_linear[1][1] = -1;
+    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=0.5, y=-0.866
+    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
+
+    
+
+    return 0;
+
+}
 
 //
