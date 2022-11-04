@@ -30,7 +30,7 @@ bool check_double_equal(
 ){
     double epsilon = 0.001;
 
-    if (abs(a-b)<=epsilon){
+    if (fabs(a-b)<=epsilon){
         return true;
     }
 
@@ -38,6 +38,9 @@ bool check_double_equal(
 
 }
 
+/*This function takes in the current state, the direction of travel, the indices of the points along the piecewise
+linear line and updates the return parameter "intersection_point" with the x and y coordinates of the target point that
+should be used for the pure-pursuit algorithm*/
 static bool find_intersection_point(
     const std::vector<double>& q_current, 
     const std::vector<std::vector<double>>& piecewise_linear, 
@@ -51,15 +54,15 @@ static bool find_intersection_point(
     if (!is_forward){
 
         // Set up co-efficients for quadratic equation
-        double a = pow((piecewise_linear[1][0] - piecewise_linear[0][0]),2) + 
-        pow((piecewise_linear[1][1] - piecewise_linear[0][1]),2);
+        double a = pow((piecewise_linear[id_goal][0] - piecewise_linear[id_start][0]),2) + 
+        pow((piecewise_linear[id_goal][1] - piecewise_linear[id_start][1]),2);
 
         double b = 2*(
-            ((piecewise_linear[0][0] - q_current[0])*(piecewise_linear[1][0] - piecewise_linear[0][0])) + 
-            ((piecewise_linear[0][1] - q_current[1])*(piecewise_linear[1][1] - piecewise_linear[0][1]))
+            ((piecewise_linear[id_start][0] - q_current[0])*(piecewise_linear[id_goal][0] - piecewise_linear[id_start][0])) + 
+            ((piecewise_linear[id_start][1] - q_current[1])*(piecewise_linear[id_goal][1] - piecewise_linear[id_start][1]))
         );
 
-        double c = pow((piecewise_linear[0][0] - q_current[0]),2) + pow((piecewise_linear[0][1] - q_current[1]),2) - backward_lookahead_radius;
+        double c = pow((piecewise_linear[id_start][0] - q_current[0]),2) + pow((piecewise_linear[id_start][1] - q_current[1]),2) - backward_lookahead_radius;
 
         double det = pow(b,2) - 4*a*c;
 
@@ -80,12 +83,12 @@ static bool find_intersection_point(
 
             if (check_double_equal(t1, t2)){
 
-                // std::cout << (piecewise_linear[1][0]*t1) + (1-t1)*piecewise_linear[0][0] << std::endl;
-                // std::cout << (piecewise_linear[1][1]*t1) + (1-t1)*piecewise_linear[0][1] << std::endl;
+                // std::cout << (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0] << std::endl;
+                // std::cout << (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1] << std::endl;
 
 
-                intersection_point[0] = (piecewise_linear[1][0]*t1) + (1-t1)*piecewise_linear[0][0];
-                intersection_point[1] = (piecewise_linear[1][1]*t1) + (1-t1)*piecewise_linear[0][1];
+                intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
+                intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
                 return true; // Intersection detected
 
             }
@@ -94,14 +97,14 @@ static bool find_intersection_point(
                 // t1 will always be greater than t2 and since the second point of the piecewise linear
                 // line will be the direction of travel, using t1 should give the point to drive to
 
-                double x_intersection1 = (piecewise_linear[1][0]*t1) + (1-t1)*piecewise_linear[0][0];
-                double y_intersection1 = (piecewise_linear[1][1]*t1) + (1-t1)*piecewise_linear[0][1];
+                double x_intersection1 = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
+                double y_intersection1 = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
 
-                double x_intersection2 = (piecewise_linear[1][0]*t2) + (1-t2)*piecewise_linear[0][0];
-                double y_intersection2 = (piecewise_linear[1][1]*t2) + (1-t2)*piecewise_linear[0][1];
+                double x_intersection2 = (piecewise_linear[id_goal][0]*t2) + (1-t2)*piecewise_linear[id_start][0];
+                double y_intersection2 = (piecewise_linear[id_goal][1]*t2) + (1-t2)*piecewise_linear[id_start][1];
 
-                intersection_point[0] = (piecewise_linear[1][0]*t1) + (1-t1)*piecewise_linear[0][0];
-                intersection_point[1] = (piecewise_linear[1][1]*t1) + (1-t1)*piecewise_linear[0][1];
+                intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
+                intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
 
                 return true;  //intersection detected
 
@@ -118,15 +121,15 @@ static bool find_intersection_point(
     else{
 
         // Set up co-efficients for quadratic equation
-        double a = pow((piecewise_linear[1][0] - piecewise_linear[0][0]),2) + 
-        pow((piecewise_linear[1][1] - piecewise_linear[0][1]),2);
+        double a = pow((piecewise_linear[id_goal][0] - piecewise_linear[id_start][0]),2) + 
+        pow((piecewise_linear[id_goal][1] - piecewise_linear[id_start][1]),2);
 
         double b = 2*(
-            ((piecewise_linear[0][0] - q_current[4])*(piecewise_linear[1][0] - piecewise_linear[0][0])) + 
-            ((piecewise_linear[0][1] - q_current[5])*(piecewise_linear[1][1] - piecewise_linear[0][1]))
+            ((piecewise_linear[id_start][0] - q_current[4])*(piecewise_linear[id_goal][0] - piecewise_linear[id_start][0])) + 
+            ((piecewise_linear[id_start][1] - q_current[5])*(piecewise_linear[id_goal][1] - piecewise_linear[id_start][1]))
         );
 
-        double c = pow((piecewise_linear[0][0] - q_current[0]),2) + pow((piecewise_linear[0][1] - q_current[1]),2) - backward_lookahead_radius;
+        double c = pow((piecewise_linear[id_start][0] - q_current[0]),2) + pow((piecewise_linear[id_start][1] - q_current[1]),2) - backward_lookahead_radius;
 
         double det = pow(b,2) - 4*a*c;
 
@@ -145,8 +148,8 @@ static bool find_intersection_point(
 
             if (check_double_equal(t1, t2)){
 
-                intersection_point[0] = (piecewise_linear[1][0]*t1) + (1-t1)*piecewise_linear[0][0];
-                intersection_point[1] = (piecewise_linear[1][1]*t1) + (1-t1)*piecewise_linear[0][1];
+                intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
+                intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
                 return true; // Intersection detected
 
             }
@@ -155,14 +158,14 @@ static bool find_intersection_point(
                 // t1 will always be greater than t2 and since the second point of the piecewise linear
                 // line will be the direction of travel, using t1 should give the point to drive to
 
-                double x_intersection1 = (piecewise_linear[1][0]*t1) + (1-t1)*piecewise_linear[0][0];
-                double y_intersection1 = (piecewise_linear[1][1]*t1) + (1-t1)*piecewise_linear[0][1];
+                double x_intersection1 = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
+                double y_intersection1 = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
 
-                double x_intersection2 = (piecewise_linear[1][0]*t2) + (1-t2)*piecewise_linear[0][0];
-                double y_intersection2 = (piecewise_linear[1][1]*t2) + (1-t2)*piecewise_linear[0][1];
+                double x_intersection2 = (piecewise_linear[id_goal][0]*t2) + (1-t2)*piecewise_linear[id_start][0];
+                double y_intersection2 = (piecewise_linear[id_goal][1]*t2) + (1-t2)*piecewise_linear[id_start][1];
 
-                intersection_point[0] = (piecewise_linear[1][0]*t1) + (1-t1)*piecewise_linear[0][0];
-                intersection_point[1] = (piecewise_linear[1][1]*t1) + (1-t1)*piecewise_linear[0][1];
+                intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
+                intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
 
                 return true;  //intersection detected
 
@@ -177,24 +180,148 @@ static bool find_intersection_point(
 
 
     return false;
+}
 
+double get_beta_desired(
+    const std::vector<double>& q_current, 
+    const std::vector<double>& intersection_point,
+    const bool& is_forward 
+){
 
-    
-    
+    if(!is_forward){
 
-    // Create circle equation for forward circle
+        double projected_distance_on_axle = (intersection_point[0] - q_current[0])*(cos(q_current[2] + M_PI_2)) + 
+        (intersection_point[1] - q_current[1])*(sin(q_current[2] + M_PI_2));
 
+        double projected_distance_on_axle_normal = (intersection_point[0] - q_current[0])*(cos(q_current[2] + M_PI)) + 
+        (intersection_point[1] - q_current[1])*(sin(q_current[2] + M_PI));
 
-    // Create circle equation for backward circle
+        double atan2val = atan2(projected_distance_on_axle_normal, projected_distance_on_axle);
 
-    //
+        std::cout << "Projected distance on axle: " << projected_distance_on_axle << std::endl;
 
+        std::cout << "Projected distance on axle normal: " << projected_distance_on_axle_normal << std::endl;
+
+        std::cout << "atan2 value: " << atan2val << std::endl;
+
+        double theta_e=0.0;
+
+        // Theta_e is the heading error as decribed by the geometry of the pure-pursuit controller
+        // with respect to the center-line of the trailer. When the trailer is facing upwards and
+        // the centerline is extened downwards and the inersection point is below the rear axle,
+        // counter clockwise angles from the centerline is negative and clockwise angles from the centerline
+        // is positive.
+        //                  |
+        //                  |
+        //                  |
+        //             ||___|___||
+        //             ||+  |  -||
+
+        if(atan2val>=0 && atan2val<=M_PI_2){
+            theta_e = M_PI_2 - atan2val;
+        }
+        else if(atan2val>M_PI_2 && atan2val<=M_PI_2){
+            theta_e = M_PI_2 - atan2val;
+        }
+        else if(atan2val<0 && atan2val>=(-1*M_PI_2)){
+            theta_e = M_PI_2 + (-1*atan2val);
+        }
+        else{
+            theta_e = -1*(M_PI_2*3) + (-1*atan2val);            
+        }
+
+        // double theta_e = asin(projected_distance_on_axle/backward_lookahead_radius);
+
+        std::cout << "Calculated theta value is: " << theta_e << std::endl;
+
+        double beta_d = atan(((trailer_wheelbase*2*sin(theta_e))/backward_lookahead_radius));
+
+        std::cout << "Beta desired is: " << beta_d << std::endl;
+
+        return beta_d;
+    }
+
+    return 0.0;
+
+    /*
+    double projected_distance_on_axle = (intersection_point[0] - q_current[4])*(cos(q_current[2] + M_PI_2)) + 
+    (intersection_point[1] - q_current[5])*(sin(q_current[2] + M_PI_2));
+
+    double projected_distance_on_axle_normal = (intersection_point[0] - q_current[4])*(cos(q_current[2] + M_PI)) + 
+    (intersection_point[1] - q_current[5])*(sin(q_current[2] + M_PI));
+
+    double atan2val = atan2(projected_distance_on_axle_normal, projected_distance_on_axle);
+
+    std::cout << "Projected distance on axle: " << projected_distance_on_axle << std::endl;
+
+    std::cout << "Projected distance on axle normal: " << projected_distance_on_axle_normal << std::endl;
+
+    std::cout << "atan2 value: " << atan2val << std::endl;
+
+    double theta_e=0.0;
+
+    // Theta_e is the heading error as decribed by the geometry of the pure-pursuit controller
+    // with respect to the center-line of the trailer. When the trailer is facing upwards and
+    // the centerline is extened downwards and the inersection point is below the rear axle,
+    // counter clockwise angles from the centerline is negative and clockwise angles from the centerline
+    // is positive.
+    //                  |
+    //                  |
+    //                  |
+    //             ||___|___||
+    //             ||+  |  -||
+
+    if(atan2val>=0 && atan2val<=M_PI_2){
+        theta_e = M_PI_2 - atan2val;
+    }
+    else if(atan2val>M_PI_2 && atan2val<=M_PI_2){
+        theta_e = M_PI_2 - atan2val;
+    }
+    else if(atan2val<0 && atan2val>=(-1*M_PI_2)){
+        theta_e = M_PI_2 + (-1*atan2val);
+    }
+    else{
+        theta_e = -1*(M_PI_2*3) + (-1*atan2val);            
+    }
+
+    // double theta_e = asin(projected_distance_on_axle/backward_lookahead_radius);
+
+    std::cout << "Calculated theta value is: " << theta_e << std::endl;
+
+    double beta_d = atan(((trailer_wheelbase*2*sin(theta_e))/backward_lookahead_radius));
+
+    std::cout << "Beta desired is: " << beta_d << std::endl;
+
+    return beta_d;
+
+    */
+}
+
+double get_alpha_e(
+    double& beta_e
+){
+
+    // Find R3
+    double r3 = (trailer_wheelbase + (tractor_m/cos(beta_e)))/(tan(beta_e));
+
+    // calculate R1
+    double r1 = sqrt(pow(r3,2) + pow(trailer_wheelbase,2) - pow(tractor_m,2));
+
+    // calculate alpha_e
+    double alpha_e = atan((tractor_wheelbase*(beta_e/fabs(beta_e)))/r1);
+
+    std::cout << "Alpha_e value is: " << alpha_e << std::endl;
+
+    return alpha_e;
 }
 
 std::vector<double> forward_simulator(
     std::vector<double> q_init,
     std::vector<std::vector<double>> piecewise_linear
 ){
+
+    // Constants
+    float beta_prop_gain = 0.3;
 
     // Check if inputs are valid
     if (piecewise_linear.size()<1){
@@ -211,7 +338,17 @@ std::vector<double> forward_simulator(
     // Find the intersection points of the lookahead circle and piecewise linear path
     std::vector<double> intersection_point(2,0);
 
-    find_intersection_point(q_init, piecewise_linear, id_start, id_goal, is_forward, intersection_point);
+    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point);
+
+    // beta desired works only for the reversing simulation now, need to create a different approach for the forward motion
+    double beta_desired = get_beta_desired(q_current, intersection_point, is_forward);
+
+    // Add the proportional gain beta
+    double beta_e = beta_desired + beta_prop_gain*(beta_desired - q_current[3]);
+
+    // Get the value of alpha_e from beta_e using the pre-compensation link
+    double alpha_e = get_alpha_e(beta_desired);
+
 
     return q_current;
 
@@ -226,15 +363,19 @@ std::vector<double> forward_simulator(
 
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////// All test functions below this line ////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main(){
+/*Test function with test cases and expected outputs for find_intersection_point_function*/
+static void test_find_intersection_point(){
 
     // Unit testing for find_intersection function
     std::vector<double> q_current{0,0,1.57,0,0,0};
     std::vector<std::vector<double>> piecewise_linear(2, std::vector<double>(2,0));
     int id_start = 0;
     int id_goal = 1;
-    bool is_forward =true;
+    bool is_forward =false;
     std::vector<double> intersection_point(2,0);
 
     piecewise_linear[0][0] = 1;
@@ -273,7 +414,102 @@ int main(){
     find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=0.5, y=-0.866
     std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
 
-    
+}
+
+/*Test function with test cases and expected outputs for get_beta_desired function*/
+static void test_get_beta_desired(){
+
+    // TODO: Add beta desired expected values as well
+
+    // Unit testing for find_intersection function
+    std::vector<double> q_current{0,0,M_PI_2,0,0,0};
+    std::vector<std::vector<double>> piecewise_linear(2, std::vector<double>(2,0));
+    int id_start = 0;
+    int id_goal = 1;
+    bool is_forward =false;
+    std::vector<double> intersection_point(2,0);
+
+    piecewise_linear[0][0] = 1;
+    piecewise_linear[0][1] = -1;
+    piecewise_linear[1][0] = 1;
+    piecewise_linear[1][1] = 1;
+    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: theta_e = -pi/2
+    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
+    get_beta_desired(q_current, intersection_point, is_forward);
+
+    piecewise_linear[0][0] = -1;
+    piecewise_linear[0][1] = -1;
+    piecewise_linear[1][0] = -1;
+    piecewise_linear[1][1] = 1;
+    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: theta_e = pi/2
+    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
+    get_beta_desired(q_current, intersection_point, is_forward);
+
+    piecewise_linear[0][0] = 0.5;
+    piecewise_linear[0][1] = -1;
+    piecewise_linear[1][0] = 0.5;
+    piecewise_linear[1][1] = 1;
+    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: theta_e = -2.61799
+    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
+    get_beta_desired(q_current, intersection_point, is_forward);
+
+    piecewise_linear[0][0] = -0.5;
+    piecewise_linear[0][1] = -1;
+    piecewise_linear[1][0] = -0.5;
+    piecewise_linear[1][1] = 1;
+    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: theta_e = 2.61799
+    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
+    get_beta_desired(q_current, intersection_point, is_forward);
+
+    piecewise_linear[0][0] = 0.5;
+    piecewise_linear[0][1] = -1;
+    piecewise_linear[1][0] = 0.5;
+    piecewise_linear[1][1] = 1;
+    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: theta_e = 
+    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
+    get_beta_desired(q_current, intersection_point, is_forward);
+
+    piecewise_linear[0][0] = -0.5;
+    piecewise_linear[0][1] = -1;
+    piecewise_linear[1][0] = -0.5;
+    piecewise_linear[1][1] = 1;
+    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=1, y=0
+    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
+    get_beta_desired(q_current, intersection_point, is_forward);
+}
+
+/*Test function with test cases and expected outputs for get_beta_desired function*/
+static void test_get_alpha_e(){
+
+    // Test function expected values are for trailer wheelbase of 0.8 m, tractor wheelbase of 0.3 m and
+    // tractor offset of 0.2 m
+
+    // TODO: Add alpha_e expected values
+    double beta_e = +0.785398;  // for beta_e = 45 degrees, alhpa_e using online solver should be 0.221639362 radians
+    get_alpha_e(beta_e);
+
+    beta_e = -0.785398;
+    get_alpha_e(beta_e); // for beta_e = -45 degrees, alhpa_e using online solver should be -0.221639362 radians
+
+    beta_e = 0.436332;
+    get_alpha_e(beta_e); // for beta_e = 25 degrees, alhpa_e using online solver should be 0.12849 radians
+
+    beta_e = 1.39626;
+    get_alpha_e(beta_e); // for beta_e = 80 degrees (1.39626 radians) using online solver alpha_e should be 0.340182125 radians
+
+
+    // Unit testing for find_intersection function
+
+}
+
+
+int main(){
+
+    // test_find_intersection_point();
+
+    // test_get_beta_desired();
+
+    test_get_alpha_e();
 
     return 0;
 
