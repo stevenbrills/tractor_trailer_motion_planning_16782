@@ -2492,8 +2492,367 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
   /usr/local/include/ct/optcon/filter/LTIMeasurementModel-impl.h \
   /usr/local/include/ct/optcon/filter/ExtendedKalmanFilter-impl.h \
   /usr/local/include/ct/optcon/filter/SteadyStateKalmanFilter-impl.h \
-  /usr/local/include/ct/optcon/filter/UnscentedKalmanFilter-impl.h
+  /usr/local/include/ct/optcon/filter/UnscentedKalmanFilter-impl.h \
+  ../include/matplotlibcpp.h \
+  /usr/include/python3.10/Python.h \
+  /usr/include/python3.10/patchlevel.h \
+  /usr/include/python3.10/pyconfig.h \
+  /usr/include/x86_64-linux-gnu/python3.10/pyconfig.h \
+  /usr/include/python3.10/pymacconfig.h \
+  /usr/include/python3.10/pyport.h \
+  /usr/include/inttypes.h \
+  /usr/include/x86_64-linux-gnu/sys/stat.h \
+  /usr/include/x86_64-linux-gnu/bits/stat.h \
+  /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
+  /usr/include/x86_64-linux-gnu/bits/statx.h \
+  /usr/include/linux/stat.h \
+  /usr/include/linux/types.h \
+  /usr/include/x86_64-linux-gnu/asm/types.h \
+  /usr/include/asm-generic/types.h \
+  /usr/include/asm-generic/int-ll64.h \
+  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h \
+  /usr/include/asm-generic/bitsperlong.h \
+  /usr/include/linux/posix_types.h \
+  /usr/include/linux/stddef.h \
+  /usr/include/x86_64-linux-gnu/asm/posix_types.h \
+  /usr/include/x86_64-linux-gnu/asm/posix_types_64.h \
+  /usr/include/asm-generic/posix_types.h \
+  /usr/include/x86_64-linux-gnu/bits/statx-generic.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_statx.h \
+  /usr/include/python3.10/exports.h \
+  /usr/include/python3.10/pymacro.h \
+  /usr/include/python3.10/pymath.h \
+  /usr/include/python3.10/pymem.h \
+  /usr/include/python3.10/cpython/pymem.h \
+  /usr/include/python3.10/object.h \
+  /usr/include/python3.10/cpython/object.h \
+  /usr/include/python3.10/objimpl.h \
+  /usr/include/python3.10/cpython/objimpl.h \
+  /usr/include/python3.10/typeslots.h \
+  /usr/include/python3.10/pyhash.h \
+  /usr/include/python3.10/cpython/pydebug.h \
+  /usr/include/python3.10/bytearrayobject.h \
+  /usr/include/python3.10/cpython/bytearrayobject.h \
+  /usr/include/python3.10/bytesobject.h \
+  /usr/include/python3.10/cpython/bytesobject.h \
+  /usr/include/python3.10/unicodeobject.h \
+  /usr/include/python3.10/cpython/unicodeobject.h \
+  /usr/include/python3.10/longobject.h \
+  /usr/include/python3.10/longintrepr.h \
+  /usr/include/python3.10/boolobject.h \
+  /usr/include/python3.10/floatobject.h \
+  /usr/include/python3.10/complexobject.h \
+  /usr/include/python3.10/rangeobject.h \
+  /usr/include/python3.10/memoryobject.h \
+  /usr/include/python3.10/tupleobject.h \
+  /usr/include/python3.10/cpython/tupleobject.h \
+  /usr/include/python3.10/listobject.h \
+  /usr/include/python3.10/cpython/listobject.h \
+  /usr/include/python3.10/dictobject.h \
+  /usr/include/python3.10/cpython/dictobject.h \
+  /usr/include/python3.10/cpython/odictobject.h \
+  /usr/include/python3.10/enumobject.h \
+  /usr/include/python3.10/setobject.h \
+  /usr/include/python3.10/methodobject.h \
+  /usr/include/python3.10/cpython/methodobject.h \
+  /usr/include/python3.10/moduleobject.h \
+  /usr/include/python3.10/funcobject.h \
+  /usr/include/python3.10/classobject.h \
+  /usr/include/python3.10/fileobject.h \
+  /usr/include/python3.10/cpython/fileobject.h \
+  /usr/include/python3.10/pycapsule.h \
+  /usr/include/python3.10/code.h \
+  /usr/include/python3.10/cpython/code.h \
+  /usr/include/python3.10/pyframe.h \
+  /usr/include/python3.10/traceback.h \
+  /usr/include/python3.10/cpython/traceback.h \
+  /usr/include/python3.10/sliceobject.h \
+  /usr/include/python3.10/cellobject.h \
+  /usr/include/python3.10/iterobject.h \
+  /usr/include/python3.10/cpython/initconfig.h \
+  /usr/include/python3.10/genobject.h \
+  /usr/include/python3.10/pystate.h \
+  /usr/include/python3.10/cpython/pystate.h \
+  /usr/include/python3.10/abstract.h \
+  /usr/include/python3.10/cpython/abstract.h \
+  /usr/include/python3.10/descrobject.h \
+  /usr/include/python3.10/genericaliasobject.h \
+  /usr/include/python3.10/warnings.h \
+  /usr/include/python3.10/weakrefobject.h \
+  /usr/include/python3.10/structseq.h \
+  /usr/include/python3.10/namespaceobject.h \
+  /usr/include/python3.10/cpython/picklebufobject.h \
+  /usr/include/python3.10/cpython/pytime.h \
+  /usr/include/python3.10/codecs.h \
+  /usr/include/python3.10/pyerrors.h \
+  /usr/include/python3.10/cpython/pyerrors.h \
+  /usr/include/python3.10/pythread.h \
+  /usr/include/python3.10/context.h \
+  /usr/include/python3.10/modsupport.h \
+  /usr/include/python3.10/compile.h \
+  /usr/include/python3.10/cpython/compile.h \
+  /usr/include/python3.10/pythonrun.h \
+  /usr/include/python3.10/cpython/pythonrun.h \
+  /usr/include/python3.10/pylifecycle.h \
+  /usr/include/python3.10/cpython/pylifecycle.h \
+  /usr/include/python3.10/ceval.h \
+  /usr/include/python3.10/cpython/ceval.h \
+  /usr/include/python3.10/sysmodule.h \
+  /usr/include/python3.10/cpython/sysmodule.h \
+  /usr/include/python3.10/osmodule.h \
+  /usr/include/python3.10/intrcheck.h \
+  /usr/include/python3.10/import.h \
+  /usr/include/python3.10/cpython/import.h \
+  /usr/include/python3.10/bltinmodule.h \
+  /usr/include/python3.10/eval.h \
+  /usr/include/python3.10/cpython/pyctype.h \
+  /usr/include/python3.10/pystrtod.h \
+  /usr/include/python3.10/pystrcmp.h \
+  /usr/include/python3.10/fileutils.h \
+  /usr/include/python3.10/cpython/fileutils.h \
+  /usr/include/python3.10/cpython/pyfpe.h \
+  /usr/include/python3.10/tracemalloc.h \
+  /home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/arrayobject.h \
+  /home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/ndarrayobject.h \
+  /home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/ndarraytypes.h \
+  /home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_common.h \
+  /home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/numpyconfig.h \
+  /home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/_numpyconfig.h \
+  /home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_endian.h \
+  /home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_cpu.h \
+  /home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/utils.h \
+  /home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/_neighborhood_iterator_imp.h \
+  /home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/__multiarray_api.h \
+  /home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_interrupt.h \
+  /usr/include/setjmp.h \
+  /usr/include/signal.h \
+  /usr/include/x86_64-linux-gnu/bits/signum-generic.h \
+  /usr/include/x86_64-linux-gnu/bits/signum-arch.h \
+  /usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h \
+  /usr/include/x86_64-linux-gnu/bits/siginfo-arch.h \
+  /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h \
+  /usr/include/x86_64-linux-gnu/bits/siginfo-consts-arch.h \
+  /usr/include/x86_64-linux-gnu/bits/types/sigval_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h \
+  /usr/include/x86_64-linux-gnu/bits/sigevent-consts.h \
+  /usr/include/x86_64-linux-gnu/bits/sigaction.h \
+  /usr/include/x86_64-linux-gnu/bits/sigcontext.h \
+  /usr/include/x86_64-linux-gnu/bits/types/stack_t.h \
+  /usr/include/x86_64-linux-gnu/sys/ucontext.h \
+  /usr/include/x86_64-linux-gnu/bits/sigstack.h \
+  /usr/include/x86_64-linux-gnu/bits/sigstksz.h \
+  /usr/include/x86_64-linux-gnu/bits/ss_flags.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
+  /usr/include/x86_64-linux-gnu/bits/sigthread.h \
+  /usr/include/x86_64-linux-gnu/bits/signal_ext.h
 
+
+/usr/include/x86_64-linux-gnu/bits/sigthread.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h:
+
+/usr/include/x86_64-linux-gnu/bits/ss_flags.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigstack.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/stack_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigevent-consts.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/sigval_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-consts-arch.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/signum-generic.h:
+
+/usr/include/setjmp.h:
+
+/home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_interrupt.h:
+
+/home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/_neighborhood_iterator_imp.h:
+
+/home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/utils.h:
+
+/home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_endian.h:
+
+/home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/_numpyconfig.h:
+
+/home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/numpyconfig.h:
+
+/home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_common.h:
+
+/home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/ndarrayobject.h:
+
+/home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/arrayobject.h:
+
+/usr/include/python3.10/tracemalloc.h:
+
+/usr/include/python3.10/cpython/fileutils.h:
+
+/usr/include/python3.10/fileutils.h:
+
+/usr/include/python3.10/pystrcmp.h:
+
+/usr/include/python3.10/pystrtod.h:
+
+/usr/include/python3.10/bltinmodule.h:
+
+/usr/include/python3.10/import.h:
+
+/usr/include/python3.10/cpython/sysmodule.h:
+
+/usr/include/python3.10/sysmodule.h:
+
+/usr/include/python3.10/cpython/ceval.h:
+
+/usr/include/python3.10/ceval.h:
+
+/usr/include/python3.10/cpython/pylifecycle.h:
+
+/usr/include/python3.10/pylifecycle.h:
+
+/usr/include/python3.10/compile.h:
+
+/usr/include/python3.10/modsupport.h:
+
+/usr/include/python3.10/context.h:
+
+/usr/include/python3.10/cpython/pyerrors.h:
+
+/usr/include/python3.10/pyerrors.h:
+
+/usr/include/python3.10/namespaceobject.h:
+
+/usr/include/python3.10/structseq.h:
+
+/usr/include/python3.10/warnings.h:
+
+/usr/include/python3.10/genericaliasobject.h:
+
+/usr/include/python3.10/descrobject.h:
+
+/usr/include/python3.10/abstract.h:
+
+/usr/include/python3.10/genobject.h:
+
+/usr/include/python3.10/cellobject.h:
+
+/usr/include/python3.10/sliceobject.h:
+
+/usr/include/python3.10/cpython/traceback.h:
+
+/usr/include/python3.10/cpython/code.h:
+
+/usr/include/python3.10/code.h:
+
+/usr/include/python3.10/cpython/fileobject.h:
+
+/usr/include/python3.10/fileobject.h:
+
+/usr/include/python3.10/funcobject.h:
+
+/usr/include/python3.10/moduleobject.h:
+
+/usr/include/python3.10/cpython/methodobject.h:
+
+/usr/include/python3.10/methodobject.h:
+
+/usr/include/python3.10/setobject.h:
+
+/usr/include/python3.10/cpython/odictobject.h:
+
+/usr/include/python3.10/dictobject.h:
+
+/usr/include/python3.10/cpython/listobject.h:
+
+/usr/include/python3.10/listobject.h:
+
+/usr/include/python3.10/tupleobject.h:
+
+/usr/include/python3.10/memoryobject.h:
+
+/usr/include/python3.10/complexobject.h:
+
+/usr/include/python3.10/floatobject.h:
+
+/usr/include/python3.10/boolobject.h:
+
+/usr/include/python3.10/longobject.h:
+
+/usr/include/python3.10/unicodeobject.h:
+
+/usr/include/python3.10/cpython/bytesobject.h:
+
+/usr/include/python3.10/bytesobject.h:
+
+/usr/include/python3.10/cpython/bytearrayobject.h:
+
+/usr/include/python3.10/bytearrayobject.h:
+
+/usr/include/python3.10/cpython/pydebug.h:
+
+/usr/include/python3.10/pyhash.h:
+
+/usr/include/python3.10/typeslots.h:
+
+/usr/include/python3.10/cpython/objimpl.h:
+
+/usr/include/python3.10/objimpl.h:
+
+/usr/include/python3.10/pymath.h:
+
+/usr/include/python3.10/pymacro.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h:
+
+/usr/include/x86_64-linux-gnu/bits/statx-generic.h:
+
+/usr/include/asm-generic/posix_types.h:
+
+/usr/include/x86_64-linux-gnu/asm/posix_types_64.h:
+
+/usr/include/python3.10/traceback.h:
+
+/usr/include/x86_64-linux-gnu/asm/posix_types.h:
+
+/usr/include/linux/stddef.h:
+
+/home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_cpu.h:
+
+/usr/include/asm-generic/bitsperlong.h:
+
+/usr/include/asm-generic/int-ll64.h:
+
+/usr/include/asm-generic/types.h:
+
+/usr/include/x86_64-linux-gnu/asm/types.h:
+
+/usr/include/linux/types.h:
+
+/usr/include/x86_64-linux-gnu/bits/statx.h:
+
+/usr/include/x86_64-linux-gnu/bits/stat.h:
+
+/usr/include/x86_64-linux-gnu/sys/stat.h:
+
+/usr/include/inttypes.h:
+
+/usr/include/python3.10/pyport.h:
+
+/usr/include/python3.10/pymacconfig.h:
+
+/usr/include/python3.10/pyconfig.h:
+
+/usr/include/python3.10/Python.h:
+
+../include/matplotlibcpp.h:
 
 /usr/local/include/ct/optcon/filter/UnscentedKalmanFilter-impl.h:
 
@@ -2536,6 +2895,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/local/include/ct/optcon/constraint/ConstraintContainerBase-impl.h:
 
 /usr/local/include/ct/optcon/constraint/term/ObstacleConstraint-impl.h:
+
+/usr/include/signal.h:
 
 /usr/local/include/ct/optcon/constraint/term/ConstraintBase-impl.h:
 
@@ -2600,6 +2961,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/local/include/ct/optcon/dms/dms_core/DmsProblem.h:
 
 /usr/local/include/ct/optcon/dms/dms_core/DmsSolver.h:
+
+/usr/include/python3.10/cpython/import.h:
 
 /usr/local/include/ct/optcon/dms/Dms:
 
@@ -2855,6 +3218,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/mpl/iter_fold.hpp:
 
+/usr/include/python3.10/eval.h:
+
 /usr/include/boost/mpl/distance.hpp:
 
 /usr/include/eigen3/Eigen/src/QR/HouseholderQR.h:
@@ -2882,6 +3247,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/mpl/aux_/template_arity.hpp:
 
 /usr/include/boost/numeric/ublas/detail/vector_assign.hpp:
+
+/usr/include/python3.10/exports.h:
 
 /usr/include/boost/fusion/view/single_view/detail/equal_to_impl.hpp:
 
@@ -3117,6 +3484,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/mpl/aux_/na_fwd.hpp:
 
+/usr/include/python3.10/rangeobject.h:
+
 /usr/include/boost/type_traits/has_negate.hpp:
 
 /usr/local/include/ct/optcon/lqr/riccati/CARE-impl.hpp:
@@ -3246,6 +3615,10 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/mpl/list/aux_/preprocessed/plain/list10.hpp:
 
 /usr/include/boost/numeric/odeint/stepper/generation/generation_rosenbrock4.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-arch.h:
+
+/usr/include/python3.10/osmodule.h:
 
 /usr/include/boost/move/detail/type_traits.hpp:
 
@@ -3399,6 +3772,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/type_traits/has_nothrow_copy.hpp:
 
+/usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h:
+
 /usr/include/boost/mpl/size_fwd.hpp:
 
 /usr/local/include/ct/core/integration/sensitivity/Sensitivity.h:
@@ -3422,6 +3797,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/optional.hpp:
 
 /usr/include/c++/11/pstl/glue_memory_defs.h:
+
+/usr/include/python3.10/cpython/pythonrun.h:
 
 /usr/include/boost/mpl/vector/aux_/preprocessed/typeof_based/vector10.hpp:
 
@@ -4003,6 +4380,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/multi_index/detail/index_base.hpp:
 
+/usr/include/python3.10/cpython/compile.h:
+
 /usr/include/c++/11/backward/binders.h:
 
 /usr/include/boost/mpl/aux_/has_key_impl.hpp:
@@ -4036,6 +4415,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/fusion/view/zip_view/detail/value_of_impl.hpp:
 
 /usr/include/eigen3/Eigen/src/Core/DiagonalMatrix.h:
+
+/usr/include/python3.10/patchlevel.h:
 
 /usr/include/boost/fusion/support/detail/is_native_fusion_sequence.hpp:
 
@@ -4076,6 +4457,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/local/include/ct/core/common/ExternallyDrivenTimer.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
+
+/usr/include/linux/posix_types.h:
 
 /usr/include/eigen3/Eigen/src/Core/DenseBase.h:
 
@@ -4190,6 +4573,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/numeric/odeint/stepper/bulirsch_stoer.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/math-vector.h:
+
+/usr/include/python3.10/codecs.h:
 
 /usr/include/c++/11/complex:
 
@@ -4311,17 +4696,25 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/mpl/aux_/config/pp_counter.hpp:
 
+/usr/include/python3.10/iterobject.h:
+
 /usr/include/boost/numeric/conversion/conversion_traits.hpp:
 
 /usr/include/c++/11/cstdint:
 
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 
+/usr/include/python3.10/cpython/tupleobject.h:
+
 /usr/include/boost/is_placeholder.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h:
 
 /usr/include/boost/mpl/reverse_iter_fold.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/signum-arch.h:
+
+/usr/include/python3.10/pythread.h:
 
 /usr/include/eigen3/Eigen/src/Core/IO.h:
 
@@ -4364,6 +4757,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/iterator/detail/config_undef.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/time_t.h:
+
+/usr/include/python3.10/cpython/pytime.h:
 
 /usr/include/boost/type_traits/remove_const.hpp:
 
@@ -4439,6 +4834,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/c++/11/unordered_map:
 
+/usr/include/python3.10/cpython/picklebufobject.h:
+
 /usr/include/boost/type_traits/is_empty.hpp:
 
 /usr/include/eigen3/Eigen/src/Core/util/XprHelper.h:
@@ -4461,6 +4858,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/local/include/ct/core/integration/Integrator-impl.h:
 
+/usr/include/python3.10/cpython/pystate.h:
+
 /usr/include/boost/type_traits/is_volatile.hpp:
 
 /usr/include/locale.h:
@@ -4480,6 +4879,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/fusion/container/vector/detail/value_at_impl.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/mathcalls.h:
+
+/usr/include/python3.10/cpython/initconfig.h:
 
 /usr/include/boost/numeric/conversion/sign_mixture_enum.hpp:
 
@@ -4553,6 +4954,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/mem_fn.hpp:
 
+/usr/include/x86_64-linux-gnu/python3.10/pyconfig.h:
+
 /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h:
 
 /usr/include/boost/algorithm/string/classification.hpp:
@@ -4562,6 +4965,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/numeric/odeint/util/ublas_wrapper.hpp:
 
 /usr/include/boost/fusion/mpl/back.hpp:
+
+/usr/include/x86_64-linux-gnu/sys/ucontext.h:
 
 /usr/include/boost/numeric/odeint/integrate/detail/integrate_n_steps.hpp:
 
@@ -4761,6 +5166,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/tuple/tuple.hpp:
 
+/usr/include/python3.10/cpython/pyctype.h:
+
 /usr/include/boost/math/special_functions/detail/igamma_inverse.hpp:
 
 /usr/local/include/ct/optcon/costfunction/term/TermQuadTracking.hpp:
@@ -4849,6 +5256,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/algorithm/string/detail/finder.hpp:
 
+/usr/include/python3.10/longintrepr.h:
+
 /usr/include/eigen3/Eigen/src/Core/ArrayBase.h:
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h:
@@ -4935,9 +5344,13 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/numeric/odeint/iterator/adaptive_time_iterator.hpp:
 
+/usr/include/python3.10/intrcheck.h:
+
 /usr/include/eigen3/Eigen/src/Core/Ref.h:
 
 /usr/include/eigen3/Eigen/src/Geometry/Transform.h:
+
+/home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/__multiarray_api.h:
 
 /usr/include/boost/numeric/odeint/stepper/generation/generation_runge_kutta_dopri5.hpp:
 
@@ -4954,6 +5367,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/local/include/ct/core/types/trajectories/DiscreteTrajectoryBase.h:
 
 /usr/include/boost/mpl/size_t.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/sigstksz.h:
 
 /usr/include/boost/mpl/bind.hpp:
 
@@ -5263,6 +5678,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/eigen3/Eigen/src/OrderingMethods/Amd.h:
 
+/usr/include/x86_64-linux-gnu/asm/bitsperlong.h:
+
 /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/LeastSquareConjugateGradient.h:
 
 /usr/include/eigen3/Eigen/SparseLU:
@@ -5387,6 +5804,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/local/include/ct/optcon/optcon.h:
 
+/usr/include/x86_64-linux-gnu/bits/sigcontext.h:
+
 /usr/local/include/ct/core/Common:
 
 /usr/include/boost/preprocessor/tuple/rem.hpp:
@@ -5422,6 +5841,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/call_traits.hpp:
 
 /usr/include/boost/detail/call_traits.hpp:
+
+/usr/include/python3.10/classobject.h:
 
 /usr/include/boost/range/detail/safe_bool.hpp:
 
@@ -5476,6 +5897,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/multi_index/detail/value_compare.hpp:
 
 /usr/include/boost/property_tree/info_parser.hpp:
+
+/usr/include/python3.10/pymem.h:
 
 /usr/include/boost/fusion/sequence/io/detail/in.hpp:
 
@@ -5537,6 +5960,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/local/include/ct/core/common/activations/SingleActivation.hpp:
 
+/usr/include/python3.10/pycapsule.h:
+
 /usr/local/include/ct/core/common/activations/LinearActivation.hpp:
 
 /usr/include/boost/range/difference_type.hpp:
@@ -5554,6 +5979,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/numeric/odeint/util/bind.hpp:
 
 /usr/local/include/ct/core/types/OutputVector.h:
+
+/usr/include/python3.10/enumobject.h:
 
 /usr/local/include/ct/core/types/StateMatrix.h:
 
@@ -5632,6 +6059,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/local/include/ct/core/switching/Switching.h:
 
 /usr/local/include/ct/core/systems/continuous_time/linear/LinearSystem.h:
+
+/usr/include/python3.10/cpython/pyfpe.h:
 
 /usr/include/boost/math/special_functions/factorials.hpp:
 
@@ -5749,6 +6178,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/function/detail/prologue.hpp:
 
+/usr/include/python3.10/pyframe.h:
+
 /usr/include/boost/type_traits/has_complement.hpp:
 
 /usr/include/boost/type_traits/detail/has_prefix_operator.hpp:
@@ -5812,6 +6243,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/type_traits/has_right_shift.hpp:
 
 /usr/include/boost/type_traits/is_complex.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-consts.h:
 
 /usr/include/c++/11/bits/allocated_ptr.h:
 
@@ -6061,6 +6494,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/fusion/support/detail/enabler.hpp:
 
+/usr/include/python3.10/pythonrun.h:
+
 /usr/include/boost/fusion/view/zip_view/detail/prior_impl.hpp:
 
 /usr/include/boost/fusion/support/detail/access.hpp:
@@ -6123,6 +6558,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/fusion/view/iterator_range/detail/at_impl.hpp:
 
+/usr/include/x86_64-linux-gnu/bits/signal_ext.h:
+
 /usr/include/boost/fusion/view/iterator_range/detail/value_at_impl.hpp:
 
 /usr/include/boost/fusion/view/iterator_range/detail/is_segmented_impl.hpp:
@@ -6152,6 +6589,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/fusion/adapted/mpl/detail/begin_impl.hpp:
 
 /usr/include/boost/fusion/algorithm/iteration/accumulate_fwd.hpp:
+
+/usr/include/linux/stat.h:
 
 /usr/include/boost/fusion/view/joint_view/detail/key_of_impl.hpp:
 
@@ -6183,6 +6622,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/fusion/view/single_view/detail/deref_impl.hpp:
 
+/usr/include/python3.10/weakrefobject.h:
+
 /usr/include/c++/11/typeinfo:
 
 /usr/include/boost/type_traits/is_default_constructible.hpp:
@@ -6199,7 +6640,11 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/fusion/view/single_view/detail/begin_impl.hpp:
 
+/usr/include/x86_64-linux-gnu/bits/sigaction.h:
+
 /usr/include/boost/fusion/adapted/mpl/detail/is_sequence_impl.hpp:
+
+/usr/include/python3.10/object.h:
 
 /usr/include/boost/type_traits/is_fundamental.hpp:
 
@@ -6448,6 +6893,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/mpl/aux_/iter_push_front.hpp:
 
 /usr/include/boost/fusion/mpl/pop_back.hpp:
+
+/usr/include/python3.10/cpython/unicodeobject.h:
 
 /usr/include/boost/mpl/aux_/pop_back_impl.hpp:
 
@@ -6773,6 +7220,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/mpl/aux_/range_c/back.hpp:
 
+/usr/include/python3.10/cpython/dictobject.h:
+
 /usr/include/boost/mpl/aux_/range_c/size.hpp:
 
 /usr/include/boost/mpl/has_key.hpp:
@@ -6835,6 +7284,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/detail/lcast_precision.hpp:
 
+/usr/include/python3.10/pystate.h:
+
 /usr/include/boost/preprocessor/repetition/enum_params_with_a_default.hpp:
 
 /usr/include/boost/type_traits/has_less.hpp:
@@ -6864,6 +7315,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/local/include/ct/core/types/arrays/ArrayHelpers.h:
 
 /usr/include/boost/numeric/odeint/integrate/max_step_checker.hpp:
+
+/usr/include/python3.10/cpython/pymem.h:
 
 /usr/local/include/ct/core/integration/internal/StepperBase.h:
 
@@ -7043,6 +7496,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/numeric/conversion/detail/preprocessed/numeric_cast_traits_common.hpp:
 
+/usr/include/python3.10/cpython/object.h:
+
 /usr/include/eigen3/Eigen/src/Geometry/Quaternion.h:
 
 /usr/include/boost/integer_traits.hpp:
@@ -7149,6 +7604,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/math/special_functions/cos_pi.hpp:
 
+/usr/include/x86_64-linux-gnu/bits/struct_stat.h:
+
 /usr/include/boost/fusion/view/reverse_view/detail/deref_data_impl.hpp:
 
 /usr/include/boost/math/tools/roots.hpp:
@@ -7233,6 +7690,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/include/boost/core/empty_value.hpp:
 
+/usr/include/x86_64-linux-gnu/bits/types/struct_statx.h:
+
 /usr/include/boost/function_types/detail/pp_tags/preprocessed.hpp:
 
 /usr/include/boost/numeric/odeint/integrate/detail/integrate_adaptive.hpp:
@@ -7252,6 +7711,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/mpl/aux_/template_arity_fwd.hpp:
 
 /usr/include/boost/function.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h:
 
 /usr/include/boost/preprocessor/iterate.hpp:
 
@@ -7321,6 +7782,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 
 /usr/local/include/ct/core/math/DerivativesCppadSettings.h:
 
+/usr/include/python3.10/cpython/abstract.h:
+
 /usr/local/include/ct/core/math/DerivativesCppadJIT.h:
 
 /usr/local/include/ct/core/math/DerivativesCppadJIT-impl.h:
@@ -7352,6 +7815,8 @@ CMakeFiles/controller.dir/src/controller.cpp.o: ../src/controller.cpp \
 /usr/include/boost/mpl/aux_/largest_int.hpp:
 
 /usr/include/boost/algorithm/string/std/string_traits.hpp:
+
+/home/steven/.local/lib/python3.10/site-packages/numpy/core/include/numpy/ndarraytypes.h:
 
 /usr/include/boost/algorithm/string/yes_no_type.hpp:
 
