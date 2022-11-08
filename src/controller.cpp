@@ -38,150 +38,6 @@ bool check_double_equal(
 
 }
 
-/*This function takes in the current state, the direction of travel, the indices of the points along the piecewise
-linear line and updates the return parameter "intersection_point" with the x and y coordinates of the target point that
-should be used for the pure-pursuit algorithm*/
-static bool find_intersection_point(
-    const std::vector<double>& q_current, 
-    const std::vector<std::vector<double>>& piecewise_linear, 
-    const int& id_start, 
-    const int& id_goal,
-    const bool& is_forward,
-    std::vector<double>& intersection_point
-){
-
-    // if the motion is reverse, use the trailer centerd lookahead circle
-    if (!is_forward){
-
-        // Set up co-efficients for quadratic equation
-        double a = pow((piecewise_linear[id_goal][0] - piecewise_linear[id_start][0]),2) + 
-        pow((piecewise_linear[id_goal][1] - piecewise_linear[id_start][1]),2);
-
-        double b = 2*(
-            ((piecewise_linear[id_start][0] - q_current[0])*(piecewise_linear[id_goal][0] - piecewise_linear[id_start][0])) + 
-            ((piecewise_linear[id_start][1] - q_current[1])*(piecewise_linear[id_goal][1] - piecewise_linear[id_start][1]))
-        );
-
-        double c = pow((piecewise_linear[id_start][0] - q_current[0]),2) + pow((piecewise_linear[id_start][1] - q_current[1]),2) - backward_lookahead_radius;
-
-        double det = pow(b,2) - 4*a*c;
-
-        if(det < 0){
-            std::cout << "No real roots" << std::endl;
-        }
-
-        // std::cout << "Determinant value could be near zero and fail equality, check performance " << std::endl;
-        // std::cout << "Determinant value: " << det << std::endl;
-
-
-        if(det>=0){
-
-            double t1 = ((-1*b) + sqrt(det))/(2*a);
-            double t2 = ((-1*b) - sqrt(det))/(2*a);
-
-            // std::cout << t1 << " " << t2 << std::endl;
-
-            if (check_double_equal(t1, t2)){
-
-                // std::cout << (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0] << std::endl;
-                // std::cout << (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1] << std::endl;
-
-
-                intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
-                intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
-                return true; // Intersection detected
-
-            }
-            else{
-
-                // t1 will always be greater than t2 and since the second point of the piecewise linear
-                // line will be the direction of travel, using t1 should give the point to drive to
-
-                double x_intersection1 = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
-                double y_intersection1 = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
-
-                double x_intersection2 = (piecewise_linear[id_goal][0]*t2) + (1-t2)*piecewise_linear[id_start][0];
-                double y_intersection2 = (piecewise_linear[id_goal][1]*t2) + (1-t2)*piecewise_linear[id_start][1];
-
-                intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
-                intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
-
-                return true;  //intersection detected
-
-            }
-
-        }
-        else{
-            std::cout << "No intersections detected" << std::endl;
-        }
-
-    }
-
-    // If the motion is forward, use tractor lookahead circle
-    else{
-
-        // Set up co-efficients for quadratic equation
-        double a = pow((piecewise_linear[id_goal][0] - piecewise_linear[id_start][0]),2) + 
-        pow((piecewise_linear[id_goal][1] - piecewise_linear[id_start][1]),2);
-
-        double b = 2*(
-            ((piecewise_linear[id_start][0] - q_current[4])*(piecewise_linear[id_goal][0] - piecewise_linear[id_start][0])) + 
-            ((piecewise_linear[id_start][1] - q_current[5])*(piecewise_linear[id_goal][1] - piecewise_linear[id_start][1]))
-        );
-
-        double c = pow((piecewise_linear[id_start][0] - q_current[0]),2) + pow((piecewise_linear[id_start][1] - q_current[1]),2) - backward_lookahead_radius;
-
-        double det = pow(b,2) - 4*a*c;
-
-        if(det < 0){
-            std::cout << "No real roots" << std::endl;
-        }
-
-        // std::cout << "Determinant value could be near zero and fail equality, check performance " << std::endl;
-        // std::cout << "Determinant value: " << det << std::endl;
-
-
-        if(det>=0){
-
-            double t1 = ((-1*b) + sqrt(det))/(2*a);
-            double t2 = ((-1*b) - sqrt(det))/(2*a);
-
-            if (check_double_equal(t1, t2)){
-
-                intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
-                intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
-                return true; // Intersection detected
-
-            }
-            else{
-
-                // t1 will always be greater than t2 and since the second point of the piecewise linear
-                // line will be the direction of travel, using t1 should give the point to drive to
-
-                double x_intersection1 = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
-                double y_intersection1 = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
-
-                double x_intersection2 = (piecewise_linear[id_goal][0]*t2) + (1-t2)*piecewise_linear[id_start][0];
-                double y_intersection2 = (piecewise_linear[id_goal][1]*t2) + (1-t2)*piecewise_linear[id_start][1];
-
-                intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
-                intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
-
-                return true;  //intersection detected
-
-            }
-
-        }
-        else{
-            std::cout << "No intersections detected" << std::endl;
-        }
-
-    }
-
-
-    return false;
-}
-
 double get_beta_desired(
     const std::vector<double>& q_current, 
     const std::vector<double>& intersection_point,
@@ -315,10 +171,50 @@ double get_alpha_e(
     return alpha_e;
 }
 
-std::vector<double> forward_simulator(
-    std::vector<double> q_init,
-    std::vector<std::vector<double>> piecewise_linear
+// A matrix
+double get_state_matrix(
+    double alpha_e,
+    std::vector<double> q_current
 ){
+
+    double r1 = tractor_wheelbase/tan(alpha_e);
+
+    double psi = atan(tractor_m/r1);
+
+    double A = ((tan(alpha_e)/tractor_wheelbase) - 
+    ((tractor_m/(tractor_wheelbase*trailer_wheelbase))*tan(alpha_e)*((-1*sin(q_current[3]))+(-1*(cos(q_current[3])/tan(psi))))));
+
+    return A;
+}
+
+// B matrix
+double get_input_matrix(
+    double alpha_e,
+    std::vector<double> q_current
+){
+
+    double r1 = tractor_wheelbase/tan(alpha_e);
+
+    double psi = atan(tractor_m/r1);
+
+    double B = ((1/(cos(alpha_e)*cos(alpha_e)*tractor_wheelbase)) - 
+    ((tractor_m/(tractor_wheelbase*trailer_wheelbase*cos(alpha_e)*cos(alpha_e)))*
+    ((cos(q_current[3]))+(-1*(sin(q_current[3])/tan(psi))))));
+
+    return B;
+}
+
+// 
+
+
+
+std::vector<double> gain_scheduler(
+){
+
+    // State transition model for beta_dot
+
+    // State Matrix
+    double 
 
     // Constants
     float beta_prop_gain = 0.3;
