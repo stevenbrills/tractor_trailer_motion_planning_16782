@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <cmath>
 #include <iostream>
+#include <ct/optcon/optcon.h>
 
 // Forward simulation function that takes initial configuration and a piecewise linear path
 // as an input
@@ -171,10 +172,10 @@ double get_alpha_e(
     return alpha_e;
 }
 
-// A matrix
+// A matrix for equillibrium point
 double get_state_matrix(
-    double alpha_e,
-    std::vector<double> q_current
+    double& alpha_e,
+    double& beta_e
 ){
 
     double r1 = tractor_wheelbase/tan(alpha_e);
@@ -182,15 +183,15 @@ double get_state_matrix(
     double psi = atan(tractor_m/r1);
 
     double A = ((tan(alpha_e)/tractor_wheelbase) - 
-    ((tractor_m/(tractor_wheelbase*trailer_wheelbase))*tan(alpha_e)*((-1*sin(q_current[3]))+(-1*(cos(q_current[3])/tan(psi))))));
+    ((tractor_m/(tractor_wheelbase*trailer_wheelbase))*tan(alpha_e)*((-1*sin(beta_e))+(-1*(cos(beta_e)/tan(psi))))));
 
     return A;
 }
 
-// B matrix
+// B matrix for equillibrium point
 double get_input_matrix(
-    double alpha_e,
-    std::vector<double> q_current
+    double& alpha_e,
+    double& beta_e
 ){
 
     double r1 = tractor_wheelbase/tan(alpha_e);
@@ -199,54 +200,122 @@ double get_input_matrix(
 
     double B = ((1/(cos(alpha_e)*cos(alpha_e)*tractor_wheelbase)) - 
     ((tractor_m/(tractor_wheelbase*trailer_wheelbase*cos(alpha_e)*cos(alpha_e)))*
-    ((cos(q_current[3]))+(-1*(sin(q_current[3])/tan(psi))))));
+    ((cos(beta_e))+(-1*(sin(beta_e)/tan(psi))))));
 
     return B;
+}
+
+// Function that returns beta_e
+double get_beta_e_given_alpha(
+    double& alpha_e
+){
+
+    double r1 = tractor_wheelbase/tan(alpha_e);
+
+    double r2 = sqrt(pow(r1,2) + pow(tractor_m,2));
+
+    double r3 = sqrt(pow(r2,2) - pow(trailer_wheelbase,2));
+
+    double psi = atan(tractor_m/r1);
+
+    double beta_e = atan(trailer_wheelbase/r3) + psi;
+
+    return beta_e;
+
 }
 
 // 
 
 
-
-std::vector<double> gain_scheduler(
+void gain_scheduler(
 ){
 
-    // State transition model for beta_dot
+    const size_t state_dim = 1;
+    const size_t control_dim = 1;
 
-    // State Matrix
-    double 
+    // double R = 0.0;
+    // double Q = 10.0;
+
+    std::cout << "In the gain scheduler function" << std::endl;
+
+    // Loop through values of alpha_e
+    // Calculate 
 
     // Constants
     float beta_prop_gain = 0.3;
 
-    // Check if inputs are valid
-    if (piecewise_linear.size()<1){
-        throw std::runtime_error("No piecewise linear input has been reeived.");
-    }
+    // calculate the extents of alpha_e
+    double alpha_e_max = atan(tractor_wheelbase/sqrt(pow(trailer_wheelbase,2) - pow(tractor_m,2)));
+
+    // loop from -alpha_e_max to +alpha_e_max
+
+    // for a given alpha_e, compute corresponding beta_e
+
+    // Using beta_e and alpha_e, compute state and input matrices for the equillibrium point
+
+    double alpha_e = 0.1;
+    double beta_e = 0.1;
+
+    ct::core::StateMatrix<state_dim> A;
+    ct::core::ControlMatrix<control_dim> B;
+    ct::core::StateMatrix<state_dim> Q;
+    ct::core::ControlMatrix<control_dim> R;
+
+
+
+    A(0,0) = get_state_matrix(alpha_e, beta_e);
+    B(0,0) = get_input_matrix(alpha_e, beta_e);
+    Q(0,0) = 10;
+    R(0,0) = 10;
+
+
+    double test = get_state_matrix(alpha_e, beta_e);
+
+    std::cout << "Returned value of get_state_matrix: " << test << std::endl;
+
+    // double B = get_input_matrix(alpha_e, beta_e);
+
+
+
+
+    ct::optcon::LQR<state_dim, control_dim> lqrSolver;
+    ct::core::FeedbackMatrix<state_dim, control_dim> K;
+
+    std::cout << "A: " << std::endl << A << std::endl << std::endl;
+    std::cout << "B: " << std::endl << B << std::endl << std::endl;
+    std::cout << "Q: " << std::endl << Q << std::endl << std::endl;
+    std::cout << "R: " << std::endl << R << std::endl << std::endl;
+
+    lqrSolver.compute(Q, R, A, B, K);
+
+    std::cout << "LQR gain matrix:" << std::endl << K << std::endl;
+
+
+
+
+
+    // State Matrix
+    // double A = get_state_matrix(alpha_e, q_current);
+
+    // Input Matrix
+    // double B = get_input_matrix(alpha_e, q_current);
+
+    // const size_t state_dim = 1;
+    // const size_t control_dim = 1;
+
+    // design the LQR controller
+    // ct::optcon::LQR<state_dim, control_dim> lqrSolver;
+    // ct::core::FeedbackMatrix<state_dim, control_dim> K;
+
+    // double Q = 10;
+    // double R = 0;
+
+    // lqrSolver.compute(Q, R, A, B, K);
 
     bool is_forward = false;
 
     int id_start = 0;
     int id_goal = 1;
-
-    std::vector<double> q_current=q_init;
-
-    // Find the intersection points of the lookahead circle and piecewise linear path
-    std::vector<double> intersection_point(2,0);
-
-    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point);
-
-    // beta desired works only for the reversing simulation now, need to create a different approach for the forward motion
-    double beta_desired = get_beta_desired(q_current, intersection_point, is_forward);
-
-    // Add the proportional gain beta
-    double beta_e = beta_desired + beta_prop_gain*(beta_desired - q_current[3]);
-
-    // Get the value of alpha_e from beta_e using the pre-compensation link
-    double alpha_e = get_alpha_e(beta_desired);
-
-
-    return q_current;
 
 
     // Use the flag to determine the right forward/backward lookahead
@@ -259,150 +328,6 @@ std::vector<double> gain_scheduler(
 
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////// All test functions below this line ////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////// All test functions below this line ////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*Test function with test cases and expected outputs for find_intersection_point_function*/
-static void test_find_intersection_point(){
-
-    // Unit testing for find_intersection function
-    std::vector<double> q_current{0,0,1.57,0,0,0};
-    std::vector<std::vector<double>> piecewise_linear(2, std::vector<double>(2,0));
-    int id_start = 0;
-    int id_goal = 1;
-    bool is_forward =false;
-    std::vector<double> intersection_point(2,0);
-
-    piecewise_linear[0][0] = 1;
-    piecewise_linear[0][1] = -1;
-    piecewise_linear[1][0] = 1;
-    piecewise_linear[1][1] = 1;
-    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=1, y=0
-    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
-
-
-    piecewise_linear[0][0] = -1;
-    piecewise_linear[0][1] = -1;
-    piecewise_linear[1][0] = 1;
-    piecewise_linear[1][1] = 1;
-    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=0.707, y=0.707
-    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
-
-    piecewise_linear[0][0] = 1;
-    piecewise_linear[0][1] = 1;
-    piecewise_linear[1][0] = -1;
-    piecewise_linear[1][1] = -1;
-    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=-0.707, y=-0.707
-    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
-
-    piecewise_linear[0][0] = 0.5;
-    piecewise_linear[0][1] = -1;
-    piecewise_linear[1][0] = 0.5;
-    piecewise_linear[1][1] = 1;
-    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=0.5, y=0.866
-    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
-
-    piecewise_linear[0][0] = 0.5;
-    piecewise_linear[0][1] = 1;
-    piecewise_linear[1][0] = 0.5;
-    piecewise_linear[1][1] = -1;
-    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=0.5, y=-0.866
-    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
-
-}
-
-/*Test function with test cases and expected outputs for get_beta_desired function*/
-static void test_get_beta_desired(){
-
-    // TODO: Add beta desired expected values as well
-
-    // Unit testing for find_intersection function
-    std::vector<double> q_current{0,0,M_PI_2,0,0,0};
-    std::vector<std::vector<double>> piecewise_linear(2, std::vector<double>(2,0));
-    int id_start = 0;
-    int id_goal = 1;
-    bool is_forward =false;
-    std::vector<double> intersection_point(2,0);
-
-    piecewise_linear[0][0] = 1;
-    piecewise_linear[0][1] = -1;
-    piecewise_linear[1][0] = 1;
-    piecewise_linear[1][1] = 1;
-    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: theta_e = -pi/2
-    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
-    get_beta_desired(q_current, intersection_point, is_forward);
-
-    piecewise_linear[0][0] = -1;
-    piecewise_linear[0][1] = -1;
-    piecewise_linear[1][0] = -1;
-    piecewise_linear[1][1] = 1;
-    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: theta_e = pi/2
-    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
-    get_beta_desired(q_current, intersection_point, is_forward);
-
-    piecewise_linear[0][0] = 0.5;
-    piecewise_linear[0][1] = -1;
-    piecewise_linear[1][0] = 0.5;
-    piecewise_linear[1][1] = 1;
-    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: theta_e = -2.61799
-    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
-    get_beta_desired(q_current, intersection_point, is_forward);
-
-    piecewise_linear[0][0] = -0.5;
-    piecewise_linear[0][1] = -1;
-    piecewise_linear[1][0] = -0.5;
-    piecewise_linear[1][1] = 1;
-    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: theta_e = 2.61799
-    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
-    get_beta_desired(q_current, intersection_point, is_forward);
-
-    piecewise_linear[0][0] = 0.5;
-    piecewise_linear[0][1] = -1;
-    piecewise_linear[1][0] = 0.5;
-    piecewise_linear[1][1] = 1;
-    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: theta_e = 
-    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
-    get_beta_desired(q_current, intersection_point, is_forward);
-
-    piecewise_linear[0][0] = -0.5;
-    piecewise_linear[0][1] = -1;
-    piecewise_linear[1][0] = -0.5;
-    piecewise_linear[1][1] = 1;
-    find_intersection_point(q_current, piecewise_linear, id_start, id_goal, is_forward, intersection_point); // Expected: x=1, y=0
-    std::cout << "Intersection x is: " << intersection_point[0] << ", Intersection y is: " << intersection_point[1] << std::endl;
-    get_beta_desired(q_current, intersection_point, is_forward);
-}
-
-/*Test function with test cases and expected outputs for get_beta_desired function*/
-static void test_get_alpha_e(){
-
-    // Test function expected values are for trailer wheelbase of 0.8 m, tractor wheelbase of 0.3 m and
-    // tractor offset of 0.2 m
-
-    // TODO: Add alpha_e expected values
-    double beta_e = +0.785398;  // for beta_e = 45 degrees, alhpa_e using online solver should be 0.221639362 radians
-    get_alpha_e(beta_e);
-
-    beta_e = -0.785398;
-    get_alpha_e(beta_e); // for beta_e = -45 degrees, alhpa_e using online solver should be -0.221639362 radians
-
-    beta_e = 0.436332;
-    get_alpha_e(beta_e); // for beta_e = 25 degrees, alhpa_e using online solver should be 0.12849 radians
-
-    beta_e = 1.39626;
-    get_alpha_e(beta_e); // for beta_e = 80 degrees (1.39626 radians) using online solver alpha_e should be 0.340182125 radians
-
-
-    // Unit testing for find_intersection function
-
-
-}
-
 
 int main(){
 
@@ -410,7 +335,9 @@ int main(){
 
     // test_get_beta_desired();
 
-    test_get_alpha_e();
+    // test_get_alpha_e();
+
+    gain_scheduler();
 
     return 0;
 
