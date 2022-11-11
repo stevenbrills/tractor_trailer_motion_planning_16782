@@ -24,6 +24,9 @@ double trailer_wheelbase = 0.8;
 // Trailer hitch offset
 double tractor_m = 0.2;
 
+// Tractor tracking velocity
+double velocity = 0.2;
+
 bool check_double_equal(
     double& a,
     double& b
@@ -315,6 +318,42 @@ double get_alpha_e(
     return alpha_e;
 }
 
+// double get_gain(
+//     double& alpha_e){
+
+// }
+
+std::vector<double> q_dot(
+    std::vector<double>& q_current,
+    double& alpha,
+    double& velocity
+){
+    std::vector<double> q_dot(4,0);
+
+    double r1 = tractor_wheelbase/tan(alpha);
+
+    double psi = atan(tractor_m/r1);
+
+    double va = ((velocity*tractor_m*tan(alpha))/(tractor_wheelbase*sin(psi)));
+
+    double vb = va*-1*cos(psi-q_current[3]);
+
+    q_dot[0] = vb*cos(q_current[2]);
+    q_dot[1] = vb*cos(q_current[2]);
+    q_dot[2] = (va/trailer_wheelbase)*sin(psi - q_current[3]);
+    q_dot[3] = ((velocity*tan(alpha))/tractor_wheelbase) - (va*(sin(psi - q_current[3])/trailer_wheelbase));
+
+    return q_dot;
+}
+
+// std::vector<double> rk4_integrator(
+
+// ){
+
+// }
+
+
+
 std::vector<double> forward_simulator(
     std::vector<double> q_init,
     std::vector<std::vector<double>> piecewise_linear
@@ -348,6 +387,15 @@ std::vector<double> forward_simulator(
 
     // Get the value of alpha_e from beta_e using the pre-compensation link
     double alpha_e = get_alpha_e(beta_desired);
+
+    // Use alpha_e to compute steering angle input
+    // double alpha = alpha_e - get_gain(alpha_e)*(q_current[3] - beta_e);
+
+    // Integrate motion through 
+
+
+
+
 
 
     return q_current;
