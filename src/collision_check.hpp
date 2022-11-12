@@ -1,5 +1,4 @@
-#include <Eigen.h>
-#include <iostream>s
+#include <iostream>
 #define TRACTOR_WIDTH (5.0f)
 #define L1 (10.0f)
 #define L2 (10.0f)
@@ -8,6 +7,9 @@
 #define MAP_WIDTH (100.0f)
 #define MAP_HEIGHT (100.0f)
 #define MAP_RESOLUTION (0.1f)
+#define RECT_RESOLUTION (0.1f)
+#include <Eigen.h>
+
 class CollisionCheck {
 
     private: 
@@ -15,8 +17,7 @@ class CollisionCheck {
         double l_trailer = L2 + D/2;
         Eigen::Matrix3d tractor_transform;
         Eigen::Matrix3d trailer_transform;
-        Eigen::Matrix3Xd tractor_coords(3,4);
-        Eigen::Matrix3Xd trailer_coords(3,4);
+
         inline void computeTransformMatrices (double theta, double beta, int x, int y) {
             
             trailer_transform << cos(theta), -sin(theta), x + L2/2*cos(theta),
@@ -26,22 +27,45 @@ class CollisionCheck {
             sin(theta+beta), cos(theta+beta), y + L2*sin(theta) + l_tractor/2*sin(theta+beta),
             0, 0, 1;
         }
-        inline void computeCoords() {
-            // define a 3X4 matrix
-            
-            tractor_coords<< -TRACTOR_WIDTH/2, TRACTOR_WIDTH/2, TRACTOR_WIDTH/2, -TRACTOR_WIDTH/2, 
-            l_tractor/2, l_tractor/2, -l_tractor/2, -l_tractor/2, 
-            1, 1, 1, 1;
 
-            trailer_coords<< -TRACTOR_WIDTH/2, TRACTOR_WIDTH/2, TRACTOR_WIDTH/2, -TRACTOR_WIDTH/2, 
-            (l_trailer)/2, (l_trailer)/2, -(l_trailer)/2, -(l_trailer)/2, 
-            1, 1, 1, 1;
+        inline void computeCoords() {
+            // tractor_coords<< -TRACTOR_WIDTH/2, TRACTOR_WIDTH/2, TRACTOR_WIDTH/2, -TRACTOR_WIDTH/2, 
+            // l_tractor/2, l_tractor/2, -l_tractor/2, -l_tractor/2, 
+            // 1, 1, 1, 1;
+
+            // trailer_coords<< -TRACTOR_WIDTH/2, TRACTOR_WIDTH/2, TRACTOR_WIDTH/2, -TRACTOR_WIDTH/2, 
+            // (l_trailer)/2, (l_trailer)/2, -(l_trailer)/2, -(l_trailer)/2, 
+            // 1, 1, 1, 1;
+
+            int steps_w= (int) (TRACTOR_WIDTH/RECT_RESOLUTION)+1;
+            int steps_l= (int) (l_tractor/RECT_RESOLUTION)+1;
+
+            //define an eigen matrix to store the coordinates of the tractor_rect
+            Eigen::Matrix3Xd tractor_rect_coords(3,(steps_w+1)*(steps_l+1));
+            for (int i = 0; i <= steps_l; i++) {
+                for (int j = 0; j < steps_w; j++) {
+                    tractor_rect_coords(0,i*(steps_w+1)+j) = -TRACTOR_WIDTH/2 + j*float(TRACTOR_WIDTH/steps_w);
+                    tractor_rect_coords(1,i*(steps_w+1)+j) = -l_tractor/2 + i*float(l_tractor/steps_l);
+                    tractor_rect_coords(2,i*(steps_w+1)+j) = 1;
+                }
+            }
+
+            steps_w= (int) (TRACTOR_WIDTH/RECT_RESOLUTION)+1;
+            steps_l= (int) (l_trailer/RECT_RESOLUTION)+1;
+
+            Eigen::Matrix3Xd trailer_rect_coords(3,(steps_w+1)*(steps_l+1));
+
+            for (int i = 0; i <= steps_l; i++) {
+                for (int j = 0; j < steps_w; j++) {
+                    trailer_rect_coords(0,i*(steps_w+1)+j) = -TRACTOR_WIDTH/2 + j*float(TRACTOR_WIDTH/steps_w);
+                    trailer_rect_coords(1,i*(steps_w+1)+j) = -l_trailer/2 + i*float(l_trailer/steps_l);
+                    trailer_rect_coords(2,i*(steps_w+1)+j) = 1;
+                }
+            }
 
             tractor_coords = tractor_transform*tractor_coords;
             trailer_coords = trailer_transform*trailer_coords;
         }
-
-        
        
         void converWorldXYtoGridXY(float x, float y, int &grid_x, int &grid_y) {
             // CONVERT world coordinates to grid coordinates
@@ -77,23 +101,7 @@ class CollisionCheck {
             // Check if the point is in the obstacle
             if (world_map[x + y*MAP_WIDTH] == 1) {
                 return 1;
-            }
-            // Check if the point is in the tractor
-            // float x1 = x - L1*cos(theta);
-            // float y1 = y - L1*sin(theta);
-            // float x2 = x + L2*cos(theta + beta);
-            // float y2 = y + L2*sin(theta + beta);
-            // float x3 = x + L2*cos(theta - beta);
-            // float y3 = y + L2*sin(theta - beta);
-            // float x4 = x - L1*cos(theta) + L2*cos(theta + beta);
-            // float y4 = y - L1*sin(theta) + L2*sin(theta + beta);
-            // float x5 = x - L1*cos(theta) + L2*cos(theta - beta);
-            // float y5 = y - L1*sin(theta) + L2*sin(theta - beta);
-
-            //take corner points from tractor_coords and trailer_coords
-
-            // check if the points are in the map
-            // check if the points are in the obstacle
+            }            
 
             if (x1 < 0 || x1 >= MAP_WIDTH || y1 < 0 || y1 >= MAP_HEIGHT) {
                 return 1;
