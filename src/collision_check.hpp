@@ -68,65 +68,44 @@ class CollisionCheck {
         }
        
         void converWorldXYtoGridXY(float x, float y, int &grid_x, int &grid_y) {
-            // CONVERT world coordinates to grid coordinates
-            grid_x = (int) x*MAP_RESOLUTION/MAP_WIDTH;
-            grid_y = (int) y*MAP_RESOLUTION/MAP_HEIGHT;
+            // CONVERT world coordinates to grid coordinates 
+            //map resolution is 0.1m
+            //if x= 0.51m, grid_x = 6
+
+            grid_x = (int) x/MAP_RESOLUTION;
+            grid_y = (int) y/MAP_RESOLUTION;
+
         }
 
         int collision_check(int x, int y, double beta, double theta, double* world_map) {
             bool collided = false;
             computeTransformMatrices(theta, beta, x, y);
             computeCoords();
-            float corner_x = tractor_coords(0,0);
-            float corner_y = tractor_coords(1,0);
-            int grid_x, grid_y;
-            converWorldXYtoGridXY(corner_x, corner_y, grid_x, grid_y);
+            
             while(!collided) {
-               
-                if(grid_x < 0 || grid_x > MAP_WIDTH || grid_y < 0 || grid_y > MAP_HEIGHT || world_map[grid_x][grid_y] > 50) {
-                    collided = true;
-                }
-                else {
-                    // check the next co ordinate
-                    corner_x += 0.1;
-                    corner_y += 0.1;
-                    converWorldXYtoGridXY(corner_x, corner_y, grid_x, grid_y);
-                    
-                }
-            }
-            // Check if the point is in the map
-            if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) {
-                return 1;
-            }
-            // Check if the point is in the obstacle
-            if (world_map[x + y*MAP_WIDTH] == 1) {
-                return 1;
-            }            
 
-            if (x1 < 0 || x1 >= MAP_WIDTH || y1 < 0 || y1 >= MAP_HEIGHT) {
-                return 1;
-            }
-            if (x2 < 0 || x2 >= MAP_WIDTH || y2 < 0 || y2 >= MAP_HEIGHT) {
-                return 1;
-            }
-            if (x3 < 0 || x3 >= MAP_WIDTH || y3 < 0 || y3 >= MAP_HEIGHT) {
-                return 1;
-            }
-            if (x4 < 0 || x4 >= MAP_WIDTH || y4 < 0 || y4 >= MAP_HEIGHT) {
-                return 1;
-            }
-            if (x5 < 0 || x5 >= MAP_WIDTH || y5 < 0 || y5 >= MAP_HEIGHT) {
-                return 1;
-            }
-            if (world_map[x1 + y1*MAP_WIDTH] == 1) {
-                return 1;
-            }
-            if (world_map[x2 + y2*MAP_WIDTH] == 1) {
-                return 1;
-            }
-            if (world_map[x3 + y3*MAP_WIDTH] == 1) {
-                return 1;
-            } 
-        }
+                //first go over all coordinates of the tractor and check if they are in the obstacle space
+                
+                int grid_x, grid_y;
+                for (int i = 0; i < tractor_coords.cols(); i++) {
+                    converWorldXYtoGridXY(tractor_coords(0,i), tractor_coords(1,i), grid_x, grid_y);
+                    //check if the grid_x and grid_y are within the map bounds and if the point is in the obstacle space
+                    if (grid_x < 0 || grid_x >= MAP_WIDTH/MAP_RESOLUTION || grid_y < 0 || grid_y >= MAP_HEIGHT/MAP_RESOLUTION || world_map[grid_x + grid_y*MAP_WIDTH/MAP_RESOLUTION] == 1) {
+                        collided = true;
+                        cout<<"Collision detected at tractor point "<<tractor_coords(0,i)<<", "<<tractor_coords(1,i)<<endl;
+                        break;
+                    }
+                }
+
+                //now go over all coordinates of the trailer and check if they are in the obstacle space
+                for (int i = 0; i < trailer_coords.cols(); i++) {
+                    converWorldXYtoGridXY(trailer_coords(0,i), trailer_coords(1,i), grid_x, grid_y);
+                    //check if the grid_x and grid_y are within the map bounds and if the point is in the obstacle space
+                    if (grid_x < 0 || grid_x >= MAP_WIDTH/MAP_RESOLUTION || grid_y < 0 || grid_y >= MAP_HEIGHT/MAP_RESOLUTION || world_map[grid_x + grid_y*MAP_WIDTH/MAP_RESOLUTION] == 1) {
+                        collided = true;
+                        cout<<"Collision detected at trailer point "<<trailer_coords(0,i)<<", "<<trailer_coords(1,i)<<endl;
+                        break;
+                    }
+                }
 };
 
