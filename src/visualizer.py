@@ -13,7 +13,7 @@ def parseFiileandCreateArray(filename):
             map_int.append([int(x) for x in line.split(' ') if x != '\n'])
     #convert map_int to numpy array
     map_int = np.array(map_int)
-    #diplay map_int as image
+    #display map_int as image
     plt.imshow(map_int)
     plt.show()
 
