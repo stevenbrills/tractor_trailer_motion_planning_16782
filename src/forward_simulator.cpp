@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <cmath>
 #include <iostream>
+#include "matplotlibcpp.h"
 
 // Forward simulation function that takes initial configuration and a piecewise linear path
 // as an input
@@ -26,6 +27,8 @@ double tractor_m = 0.2;
 
 // Tractor tracking velocity
 double velocity = 0.2;
+
+namespace plt = matplotlibcpp;
 
 bool check_double_equal(
     double& a,
@@ -300,6 +303,30 @@ double get_beta_desired(
     */
 }
 
+// Function that returns beta_e
+double get_beta_e_given_alpha(
+    double& alpha_e
+){
+
+    double r1 = tractor_wheelbase/tan(alpha_e);
+
+    double r2 = sqrt(pow(r1,2) + pow(tractor_m,2));
+
+    double psi = atan(tractor_m/fabs(r1));
+
+    double theta_1 = asin(fabs(r1)/r2);
+
+    double theta_2 = acos(trailer_wheelbase/r2);
+
+    // (alpha_e/fabs(alpha_e))*
+
+    double beta_e = (alpha_e/fabs(alpha_e))*(theta_1 + theta_2);
+    // ((M_PI_2 - psi) + acos(trailer_wheelbase/r2));
+
+    return beta_e;
+
+}
+
 double get_alpha_e(
     double& beta_e
 ){
@@ -324,33 +351,101 @@ double get_alpha_e(
 // }
 
 std::vector<double> q_dot(
-    std::vector<double>& q_current,
-    double& alpha,
-    double& velocity
+    const std::vector<double>& q_current,
+    const double& alpha,
+    const double& velocity
 ){
     std::vector<double> q_dot(4,0);
 
     double r1 = tractor_wheelbase/tan(alpha);
 
-    double psi = atan(tractor_m/r1);
+    double psi = -1*(alpha/fabs(alpha))*atan(tractor_m/fabs(r1));
 
-    double va = ((velocity*tractor_m*tan(alpha))/(tractor_wheelbase*sin(psi)));
+    double va = (velocity/fabs(velocity))*fabs(((velocity*tractor_m*tan(alpha))/(tractor_wheelbase*sin(psi))));
 
-    double vb = va*-1*cos(psi-q_current[3]);
+    double vb = va*fabs(cos(psi-q_current[3]));
+
+    double r2 = tractor_m/sin(psi);
+
+    double r3 = trailer_wheelbase/sin(psi-q_current[3]);
+
+    double omega_2 = ((r2)/(r1*-1*r3));
 
     q_dot[0] = vb*cos(q_current[2]);
-    q_dot[1] = vb*cos(q_current[2]);
-    q_dot[2] = (va/trailer_wheelbase)*sin(psi - q_current[3]);
-    q_dot[3] = ((velocity*tan(alpha))/tractor_wheelbase) - (va*(sin(psi - q_current[3])/trailer_wheelbase));
+    q_dot[1] = vb*sin(q_current[2]);
+    q_dot[2] = velocity*((r2)/(r1*r3));
+    q_dot[3] = velocity*(((r2)/(r1*r3)) - (1/r1));
 
     return q_dot;
 }
 
-// std::vector<double> rk4_integrator(
+double wrap_angle(
+    const double& input_angle
+){
 
-// ){
+    if((input_angle >= (-1*M_PI)) && (input_angle <= (M_PI))){
+        return input_angle;
+    }
 
-// }
+    double remainder = fmod(input_angle,M_PI);
+
+    if (remainder < 0){
+        return (M_PI + remainder);
+    }
+    
+    return ((-1*M_PI) + remainder);
+}
+
+std::vector<double> rk4_integrator(
+const double& alpha,
+const double& velocity,
+const std::vector<double> q_current,
+const double& timestep
+){
+
+    std::vector<double> k1(4,0);
+    std::vector<double> k2(4,0);
+    std::vector<double> k3(4,0);
+    std::vector<double> k4(4,0);
+
+    // Runge-Kutta Fourth Order Integration
+    k1 = q_dot(q_current, alpha, velocity);
+    std::vector<double> q_delta1(4,0);
+    q_delta1[0] = q_current[0] + k1[0]*(timestep/2);
+    q_delta1[1] = q_current[1] + k1[1]*(timestep/2);
+    q_delta1[2] = q_current[2] + k1[2]*(timestep/2);
+    q_delta1[3] = q_current[3] + k1[3]*(timestep/2);
+
+    k2 = q_dot(q_delta1, alpha, velocity);
+    std::vector<double> q_delta2(4,0);
+    q_delta2[0] = q_current[0] + k2[0]*(timestep/2);
+    q_delta2[1] = q_current[1] + k2[1]*(timestep/2);
+    q_delta2[2] = q_current[2] + k2[2]*(timestep/2);
+    q_delta2[3] = q_current[3] + k2[3]*(timestep/2);
+
+    k3 = q_dot(q_delta2, alpha, velocity);
+    std::vector<double> q_delta3(4,0);
+    q_delta3[0] = q_current[0] + k3[0]*(timestep);
+    q_delta3[1] = q_current[1] + k3[1]*(timestep);
+    q_delta3[2] = q_current[2] + k3[2]*(timestep);
+    q_delta3[3] = q_current[3] + k3[3]*(timestep);
+
+
+    k4 = q_dot(q_delta3, alpha, velocity);
+
+    std::vector<double> q_next(4,0);
+
+    q_next[0] = q_current[0] + ((k1[0]/6)+(k2[0]/3)+(k3[0]/3)+(k4[0]/6))*timestep;
+    q_next[1] = q_current[1] + ((k1[1]/6)+(k2[1]/3)+(k3[1]/3)+(k4[1]/6))*timestep;
+    q_next[2] = q_current[2] + ((k1[2]/6)+(k2[2]/3)+(k3[2]/3)+(k4[2]/6))*timestep;
+    q_next[3] = q_current[3] + ((k1[3]/6)+(k2[3]/3)+(k3[3]/3)+(k4[3]/6))*timestep;
+
+    q_next[2] = wrap_angle(q_next[2]);
+    q_next[3] = wrap_angle(q_next[3]);
+
+    return q_next;
+
+}
 
 
 
@@ -361,6 +456,9 @@ std::vector<double> forward_simulator(
 
     // Constants
     float beta_prop_gain = 0.3;
+
+    // Simulation time step
+    double timestep = 0.001;
 
     // Check if inputs are valid
     if (piecewise_linear.size()<1){
@@ -411,13 +509,9 @@ std::vector<double> forward_simulator(
 
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////// All test functions below this line ////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////// All test functions below this line ////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////// All test functions below this line //////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*Test function with test cases and expected outputs for find_intersection_point_function*/
 static void test_find_intersection_point(){
@@ -551,9 +645,198 @@ static void test_get_alpha_e(){
 
 
     // Unit testing for find_intersection function
+}
 
+/*Test function with test cases and expected outputs for q_dot function*/
+static void test_q_dot(){
+
+    double velocity = 1;
+    double alpha = 0.2;
+    double beta_e;
+
+    std::vector<double> q_current(4,0);
+    std::vector<double> q_dot_vec(4,0);
+
+    // First test case
+
+    q_current[0] = 0.0;
+    q_current[1] = 0.0;
+    q_current[2] = M_PI_2;
+    q_current[3] = 2.3;
+
+    q_dot_vec = q_dot(q_current, alpha, velocity);
+    beta_e = get_beta_e_given_alpha(alpha);
+
+    // Expected values of rates are: xdot = ~0, ydot = 0.767, thetadot = 0.8196, betadot = 0.144
+    std::cout << "--------------------------------" << std::endl;
+    std::cout << "States are: " << std::endl;
+    std::cout << " X: " << q_current[0] << " Y: " << q_current[1] << " Theta: " << q_current[2] << " Beta: " << q_current[3] << std::endl;
+    std::cout << "Inputs are: " << std::endl;
+    std::cout << "V: " << velocity << " Alpha: " << alpha << std::endl;
+    std::cout << "Beta_e for given alpha is: " << beta_e << std::endl;
+    std::cout << "Rates are: " << std::endl;
+    std::cout << "X_dot: " << q_dot_vec[0] << " Y_dot: " << q_dot_vec[1] << " Theta_dot: " << q_dot_vec[2] << " Beta_dot: " << q_dot_vec[3] << std::endl;
+    std::cout << "--------------------------------" << std::endl;
+
+    // Second test case
+    q_current[0] = 0.0;
+    q_current[1] = 0.0;
+    q_current[2] = M_PI_2;
+    q_current[3] = 2.3;
+    alpha = -0.2;
+    beta_e = get_beta_e_given_alpha(alpha);
+
+    q_dot_vec = q_dot(q_current, alpha, velocity);
+
+    // Expected values of rates are: xdot = ~0, ydot = 0.5655, thetadot = 1.0447, betadot = 1.7204
+    std::cout << "--------------------------------" << std::endl;
+    std::cout << "States are: " << std::endl;
+    std::cout << "X: " << q_current[0] << "Y: " << q_current[1] << "Theta: " << q_current[2] << "Beta: " << q_current[3] << std::endl;
+    std::cout << "Inputs are: " << std::endl;
+    std::cout << "V: " << velocity << "Alpha: " << alpha << std::endl;
+    std::cout << "Beta_e for given alpha is: " << beta_e << std::endl;
+    std::cout << "Rates are: " << std::endl;
+    std::cout << "X_dot: " << q_dot_vec[0] << " Y_dot: " << q_dot_vec[1] << " Theta_dot: " << q_dot_vec[2] << " Beta_dot: " << q_dot_vec[3] << std::endl;
+    std::cout << "--------------------------------" << std::endl;
+
+    // Third test case
+    q_current[0] = 0.0;
+    q_current[1] = 0.0;
+    q_current[2] = M_PI_2;
+    q_current[3] = -2.3;
+    alpha = 0.2;
+    beta_e = get_beta_e_given_alpha(alpha);
+
+    q_dot_vec = q_dot(q_current, alpha, velocity);
+
+    // Expected values of rates are: xdot = ~0, ydot = 0.5655, thetadot = -1.0447, betadot = -1.7204
+    std::cout << "--------------------------------" << std::endl;
+    std::cout << "States are: " << std::endl;
+    std::cout << "X: " << q_current[0] << "Y: " << q_current[1] << "Theta: " << q_current[2] << "Beta: " << q_current[3] << std::endl;
+    std::cout << "Inputs are: " << std::endl;
+    std::cout << "V: " << velocity << "Alpha: " << alpha << std::endl;
+    std::cout << "Beta_e for given alpha is: " << beta_e << std::endl;
+    std::cout << "Rates are: " << std::endl;
+    std::cout << "X_dot: " << q_dot_vec[0] << " Y_dot: " << q_dot_vec[1] << " Theta_dot: " << q_dot_vec[2] << " Beta_dot: " << q_dot_vec[3] << std::endl;
+    std::cout << "--------------------------------" << std::endl;
+
+    // Fourth test case
+    q_current[0] = 0.0;
+    q_current[1] = 0.0;
+    q_current[2] = M_PI_2;
+    q_current[3] = -2.3;
+    alpha = -0.2;
+    beta_e = get_beta_e_given_alpha(alpha);
+
+    q_dot_vec = q_dot(q_current, alpha, velocity);
+
+    // Expected values of rates are: xdot = ~0, ydot = 0.767, thetadot = -0.8196, betadot = -0.144
+    std::cout << "--------------------------------" << std::endl;
+    std::cout << "States are: " << std::endl;
+    std::cout << "X: " << q_current[0] << "Y: " << q_current[1] << "Theta: " << q_current[2] << "Beta: " << q_current[3] << std::endl;
+    std::cout << "Inputs are: " << std::endl;
+    std::cout << "V: " << velocity << "Alpha: " << alpha << std::endl;
+    std::cout << "Beta_e for given alpha is: " << beta_e << std::endl;
+    std::cout << "Rates are: " << std::endl;
+    std::cout << "X_dot: " << q_dot_vec[0] << " Y_dot: " << q_dot_vec[1] << " Theta_dot: " << q_dot_vec[2] << " Beta_dot: " << q_dot_vec[3] << std::endl;
+    std::cout << "--------------------------------" << std::endl;
 
 }
+
+static void test_rk4_integration_function(
+    
+){
+    double velocity = 1;
+    double alpha = 0.2;
+    double timestep = 0.001;
+    double beta_e;
+
+    std::vector<double> q_current(4,0);
+    std::vector<double> q_dot_vec(4,0);
+
+    std::vector<std::vector<double>> state_history;
+
+
+
+    // First test case
+    double start_angle = M_PI_2;
+    q_current[0] = 0.0;
+    q_current[1] = 0.0;
+    q_current[2] = wrap_angle(start_angle);
+    q_current[3] = 2.3;
+
+    state_history.push_back(q_current);
+
+    double starttime = 0;
+    double finaltime = 100;
+    double steps = (finaltime - starttime)/timestep;
+
+    std::vector<double> x(steps+1);
+    std::vector<double> y(steps+1);
+    std::vector<double> thetas(steps+1);
+    std::vector<double> betas(steps+1);
+    std::vector<double> time(steps+1);
+
+    x[0] = q_current[0];
+    y[0] = q_current[1];
+    thetas[0] = q_current[2];
+    betas[0] = q_current[3];
+    time[0] = 0;
+
+    for (int i=1; i<steps+1; i++){
+
+        if(i==steps/2){
+            alpha = -0.1;
+        }
+        q_current = rk4_integrator(alpha, velocity, q_current, timestep);
+        x[i] = q_current[0];
+        y[i] = q_current[1];
+        thetas[i] = q_current[2];
+        betas[i] = q_current[3];
+        time[i] = i;
+        state_history.push_back(q_current);
+    }
+
+    // auto figure = 
+    // plt::figure(1);
+    // plt::suptitle("Evolution");
+    // plt::subplot(1,2,1);
+    // plt::plot(time, x, "k-");
+    // plt::subplot(1,2,2);
+    // plt::plot(time, y, "r-");
+    // plt::subplot(1,2,3);
+    plt::plot(time, thetas, "b-");
+    // plt::subplot(1,2,4);
+    // plt::plot(time, betas, "g-");
+    plt::show();
+
+}
+
+static void test_wrap_angle(){
+
+    double test_angle;
+
+    test_angle = M_PI;
+
+    std::cout << "PI after wrapping: " << wrap_angle(test_angle) << std::endl; // Expected value 3.14159
+
+    test_angle = -1*M_PI;
+
+    std::cout << "-PI after working: " << wrap_angle(test_angle) << std::endl; // Expected value -3.14159
+
+    test_angle = 1.5*M_PI;
+
+    std::cout << "1.5*PI after working: " << wrap_angle(test_angle) << std::endl; // Expected value -1.57
+
+    test_angle = -1.5*M_PI;
+
+    std::cout << "-1.5*PI after working: " << wrap_angle(test_angle) << std::endl; // Expected value 1.57
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////// Main //////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 int main(){
@@ -562,7 +845,13 @@ int main(){
 
     // test_get_beta_desired();
 
-    test_get_alpha_e();
+    // test_get_alpha_e();
+
+    // test_q_dot();
+
+    test_rk4_integration_function();
+
+    // test_wrap_angle();
 
     return 0;
 

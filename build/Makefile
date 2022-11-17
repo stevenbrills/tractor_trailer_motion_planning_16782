@@ -142,6 +142,19 @@ controller/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/controller.dir/build.make CMakeFiles/controller.dir/build
 .PHONY : controller/fast
 
+#=============================================================================
+# Target rules for targets named controller_new
+
+# Build rule for target.
+controller_new: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 controller_new
+.PHONY : controller_new
+
+# fast build rule for target.
+controller_new/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/controller_new.dir/build.make CMakeFiles/controller_new.dir/build
+.PHONY : controller_new/fast
+
 src/controller.o: src/controller.cpp.o
 .PHONY : src/controller.o
 
@@ -165,6 +178,30 @@ src/controller.s: src/controller.cpp.s
 src/controller.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/controller.dir/build.make CMakeFiles/controller.dir/src/controller.cpp.s
 .PHONY : src/controller.cpp.s
+
+src/controller_new_convention.o: src/controller_new_convention.cpp.o
+.PHONY : src/controller_new_convention.o
+
+# target to build an object file
+src/controller_new_convention.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/controller_new.dir/build.make CMakeFiles/controller_new.dir/src/controller_new_convention.cpp.o
+.PHONY : src/controller_new_convention.cpp.o
+
+src/controller_new_convention.i: src/controller_new_convention.cpp.i
+.PHONY : src/controller_new_convention.i
+
+# target to preprocess a source file
+src/controller_new_convention.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/controller_new.dir/build.make CMakeFiles/controller_new.dir/src/controller_new_convention.cpp.i
+.PHONY : src/controller_new_convention.cpp.i
+
+src/controller_new_convention.s: src/controller_new_convention.cpp.s
+.PHONY : src/controller_new_convention.s
+
+# target to generate assembly for a file
+src/controller_new_convention.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/controller_new.dir/build.make CMakeFiles/controller_new.dir/src/controller_new_convention.cpp.s
+.PHONY : src/controller_new_convention.cpp.s
 
 src/forward_simulator.o: src/forward_simulator.cpp.o
 .PHONY : src/forward_simulator.o
@@ -199,10 +236,14 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... controller"
+	@echo "... controller_new"
 	@echo "... forward_simulator"
 	@echo "... src/controller.o"
 	@echo "... src/controller.i"
 	@echo "... src/controller.s"
+	@echo "... src/controller_new_convention.o"
+	@echo "... src/controller_new_convention.i"
+	@echo "... src/controller_new_convention.s"
 	@echo "... src/forward_simulator.o"
 	@echo "... src/forward_simulator.i"
 	@echo "... src/forward_simulator.s"

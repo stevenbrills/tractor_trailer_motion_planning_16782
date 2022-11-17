@@ -268,7 +268,7 @@ double get_beta_dot(
 
     double r2 = tractor_m/sin(psi);
 
-    double r3 = trailer_wheelbase/sin(beta-psi);
+    double r3 = trailer_wheelbase/sin(psi-beta);
 
 
 
@@ -280,12 +280,12 @@ double get_beta_dot(
 
     // double beta_dot = velocity*((alpha/fabs(alpha))*(1/r1) - ((-1*alpha)/fabs(alpha))*((r2)/(r1*r3)));
 
-    double beta_dot = velocity*((1/r1) + ((r2)/(r1*r3)));
+    double beta_dot = velocity*(((r2)/(r1*r3)) - (1/r1));
 
     double omega_2 = ((r2)/(r1*-1*r3));
 
 
-    return -1*beta_dot;
+    return beta_dot;
 
 }
 
@@ -326,7 +326,7 @@ double get_beta_e_given_alpha(
 
     // double beta_e = atan(trailer_wheelbase/r3) + psi;
 
-    double beta_e = (alpha_e/fabs(alpha_e))*(atan(tractor_m/r1) + asin(trailer_wheelbase/(sqrt(pow(r1,2) + pow(tractor_m,2)))));
+    double beta_e = (alpha_e/fabs(alpha_e))*(M_PI - (atan(tractor_m/r1) + asin(trailer_wheelbase/(sqrt(pow(r1,2) + pow(tractor_m,2))))));
 
     return beta_e;
 
