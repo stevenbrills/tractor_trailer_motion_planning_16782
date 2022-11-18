@@ -466,7 +466,7 @@ const double& timestep
 
     k4 = q_dot(q_delta3, alpha, velocity);
 
-    std::vector<double> q_next(4,0);
+    std::vector<double> q_next(6,0);
 
     q_next[0] = q_current[0] + ((k1[0]/6)+(k2[0]/3)+(k3[0]/3)+(k4[0]/6))*timestep;
     q_next[1] = q_current[1] + ((k1[1]/6)+(k2[1]/3)+(k3[1]/3)+(k4[1]/6))*timestep;
@@ -475,6 +475,9 @@ const double& timestep
 
     q_next[2] = wrap_angle(q_next[2]);
     q_next[3] = wrap_angle(q_next[3]);
+
+    q_next[4] = q_next[0] + trailer_wheelbase*cos(q[2]) + tractor_m*cos(M_PI - q_next[3] + q_next[2]);
+    q_next[5] = q_next[1] + trailer_wheelbase*sin(q[2]) + tractor_m*sin(M_PI - q_next[3] + q_next[2]);
 
     return q_next;
 
@@ -495,7 +498,7 @@ std::vector<double> forward_simulator(
 
     // Check if inputs are valid
     if (piecewise_linear.size()<1){
-        throw std::runtime_error("No piecewise linear input has been reeived.");
+        throw std::runtime_error("No piecewise linear input has been received.");
     }
 
     bool is_forward = false;
@@ -520,9 +523,12 @@ std::vector<double> forward_simulator(
     double alpha_e = get_alpha_e(beta_desired);
 
     // Use alpha_e to compute steering angle input
-    // double alpha = alpha_e - get_gain(alpha_e)*(q_current[3] - beta_e);
+    double alpha = alpha_e - get_gain(alpha_e)*(q_current[3] - beta_e);
 
     // Integrate motion through 
+    std::vector<double> q_next = rk4_integrator(alpha, velocity, q_current, timestep);
+
+
 
 
 
