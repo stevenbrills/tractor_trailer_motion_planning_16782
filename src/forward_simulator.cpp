@@ -2,7 +2,9 @@
 #include <stdexcept>
 #include <cmath>
 #include <iostream>
+#include <ct/optcon/optcon.h>
 #include "matplotlibcpp.h"
+#include "planner.h"
 
 // Forward simulation function that takes initial configuration and a piecewise linear path
 // as an input
@@ -196,51 +198,68 @@ double get_beta_desired(
 
     if(!is_forward){
 
-        double projected_distance_on_axle = (intersection_point[0] - q_current[0])*(cos(q_current[2] + M_PI_2)) + 
-        (intersection_point[1] - q_current[1])*(sin(q_current[2] + M_PI_2));
+        // std::cout << "Delta x: " << (intersection_point[0] - q_current[0]) << std::endl;
+        // std::cout << "Delta y: " << (intersection_point[1] - q_current[1]) << std::endl;
+        // std::cout << "Theta value: " << q_current[2] << std::endl;
+        // std::cout << "X Cos theta: " << (intersection_point[0] - q_current[0])*(cos(-1*q_current[2])) << std::endl;
+        // std::cout << "Y Sin theta: " << (intersection_point[1] - q_current[1])*(sin(-1*q_current[2])) << std::endl;
+        // std::cout << "X Sin theta: " << (intersection_point[0] - q_current[0])*(sin(-1*q_current[2])) << std::endl;
+        // std::cout << "Y Cos theta: : " << (intersection_point[1] - q_current[1])*(cos(-1*q_current[2])) << std::endl;
 
-        double projected_distance_on_axle_normal = (intersection_point[0] - q_current[0])*(cos(q_current[2] + M_PI)) + 
-        (intersection_point[1] - q_current[1])*(sin(q_current[2] + M_PI));
 
-        double atan2val = atan2(projected_distance_on_axle_normal, projected_distance_on_axle);
+
+        double projected_distance_on_axle = (intersection_point[0] - q_current[0])*(cos(-1*q_current[2])) + 
+        (intersection_point[1] - q_current[1])*(sin(-1*q_current[2]));
+
+        // double projected_distance_on_axle = (intersection_point[0] - q_current[0])*(cos(q_current[2] + M_PI_2)) + 
+        // (intersection_point[1] - q_current[1])*(sin(q_current[2] + M_PI_2));
+
+        double projected_distance_on_axle_normal = (intersection_point[0] - q_current[0])*(sin(-1*q_current[2])) + 
+        (intersection_point[1] - q_current[1])*(cos(-1*q_current[2]));
+
+        double theta_e = atan2(projected_distance_on_axle, projected_distance_on_axle_normal);
+
+        double turning_circle_radius = fabs(backward_lookahead_radius/(2*sin(theta_e)));
+
+        double beta_1 = atan(turning_circle_radius/trailer_wheelbase);
+
+        double beta_2 = acos(tractor_m/sqrt(pow(trailer_wheelbase,2)+pow(turning_circle_radius,2)));
+
+        double beta_d = (theta_e/fabs(theta_e))*(beta_1+beta_2);
 
         std::cout << "Projected distance on axle: " << projected_distance_on_axle << std::endl;
 
         std::cout << "Projected distance on axle normal: " << projected_distance_on_axle_normal << std::endl;
 
-        std::cout << "atan2 value: " << atan2val << std::endl;
+        std::cout << "atan2 value: " << theta_e << std::endl;
 
-        double theta_e=0.0;
+        std::cout << "Turning radius value is: " << turning_circle_radius << std::endl;
+        
+        std::cout << "Beta 1 componenet: " << beta_1 << std::endl;
+
+        std::cout << "Beta 2 componenet: " << beta_2 << std::endl;
 
         // Theta_e is the heading error as decribed by the geometry of the pure-pursuit controller
         // with respect to the center-line of the trailer. When the trailer is facing upwards and
         // the centerline is extened downwards and the inersection point is below the rear axle,
-        // counter clockwise angles from the centerline is negative and clockwise angles from the centerline
-        // is positive.
+        // counter clockwise angles from the centerline is positive and clockwise angles from the centerline
+        // are negative.
+        //              \
+        //               \
+        //                \
+        //                 \
         //                  |
         //                  |
         //                  |
-        //             ||___|___||
-        //             ||+  |  -||
+        //             ||+__|__-||
+        //             ||   |   ||
 
-        if(atan2val>=0 && atan2val<=M_PI_2){
-            theta_e = M_PI_2 - atan2val;
-        }
-        else if(atan2val>M_PI_2 && atan2val<=M_PI_2){
-            theta_e = M_PI_2 - atan2val;
-        }
-        else if(atan2val<0 && atan2val>=(-1*M_PI_2)){
-            theta_e = M_PI_2 + (-1*atan2val);
-        }
-        else{
-            theta_e = -1*(M_PI_2*3) + (-1*atan2val);            
-        }
 
         // double theta_e = asin(projected_distance_on_axle/backward_lookahead_radius);
 
         std::cout << "Calculated theta value is: " << theta_e << std::endl;
 
-        double beta_d = atan(((trailer_wheelbase*2*sin(theta_e))/backward_lookahead_radius));
+        // double beta_d = atan(((trailer_wheelbase*2*sin(theta_e))/backward_lookahead_radius));
 
         std::cout << "Beta desired is: " << beta_d << std::endl;
 
@@ -332,15 +351,29 @@ double get_alpha_e(
 ){
 
     // Find R3
-    double r3 = (trailer_wheelbase + (tractor_m/cos(beta_e)))/(tan(beta_e));
+
+    // double r3 = (trailer_wheelbase*sin(fabs(beta_e))/(cos(M_PI - fabs(beta_e)))) + tractor_m*sin(fabs(beta_e));
+
+    double r3 = (tractor_m/cos(fabs(beta_e) - M_PI_2))*(((trailer_wheelbase*cos(M_PI - fabs(beta_e)))/tractor_m) + 1);
+
+    double r2 = sqrt(pow(trailer_wheelbase,2) + pow(r3,2));
+
+    double r1 = sqrt(pow(r2,2) - pow(tractor_m,2));
+
+    double alpha_e = atan(tractor_wheelbase/r1)*(beta_e/fabs(beta_e));
+
+    // std::cout << "R3 value: " << r3 << std::endl;
+    // std::cout << "R2 value: " << r2 << std::endl;
+    // std::cout << "R1 value: " << r1 << std::endl;
+
 
     // calculate R1
-    double r1 = sqrt(pow(r3,2) + pow(trailer_wheelbase,2) - pow(tractor_m,2));
+    // double r1 = sqrt(pow(r3,2) + pow(trailer_wheelbase,2) - pow(tractor_m,2));
 
     // calculate alpha_e
-    double alpha_e = atan((tractor_wheelbase*(beta_e/fabs(beta_e)))/r1);
+    // double alpha_e = atan((tractor_wheelbase*(beta_e/fabs(beta_e)))/r1);
 
-    std::cout << "Alpha_e value is: " << alpha_e << std::endl;
+    // std::cout << "Alpha_e value is: " << alpha_e << std::endl;
 
     return alpha_e;
 }
@@ -509,9 +542,9 @@ std::vector<double> forward_simulator(
 
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////// All test functions below this line //////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////// All test functions below this line ///////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*Test function with test cases and expected outputs for find_intersection_point_function*/
 static void test_find_intersection_point(){
@@ -566,9 +599,10 @@ static void test_find_intersection_point(){
 static void test_get_beta_desired(){
 
     // TODO: Add beta desired expected values as well
+    // TODO: Update all test cases for the new calculation approach
 
     // Unit testing for find_intersection function
-    std::vector<double> q_current{0,0,M_PI_2,0,0,0};
+    std::vector<double> q_current{0,0,M_PI_2/2 + M_PI_2,0,0,0};
     std::vector<std::vector<double>> piecewise_linear(2, std::vector<double>(2,0));
     int id_start = 0;
     int id_goal = 1;
@@ -631,18 +665,17 @@ static void test_get_alpha_e(){
     // tractor offset of 0.2 m
 
     // TODO: Add alpha_e expected values
-    double beta_e = +0.785398;  // for beta_e = 45 degrees, alhpa_e using online solver should be 0.221639362 radians
-    get_alpha_e(beta_e);
+    double beta_e = 2.80456;
+    std::cout << "Alpha e is: " << get_alpha_e(beta_e) << std::endl; // Expected alpha_e = 0.1
 
-    beta_e = -0.785398;
-    get_alpha_e(beta_e); // for beta_e = -45 degrees, alhpa_e using online solver should be -0.221639362 radians
+    beta_e = -1*2.80456;
+    std::cout << "Alpha e is: " << get_alpha_e(beta_e) << std::endl; // Expected alpha_e = -0.1
 
-    beta_e = 0.436332;
-    get_alpha_e(beta_e); // for beta_e = 25 degrees, alhpa_e using online solver should be 0.12849 radians
+    beta_e = 2.44194;
+    std::cout << "Alpha e is: " << get_alpha_e(beta_e) << std::endl; // Expected alpha_e = 0.2
 
-    beta_e = 1.39626;
-    get_alpha_e(beta_e); // for beta_e = 80 degrees (1.39626 radians) using online solver alpha_e should be 0.340182125 radians
-
+    beta_e = -1*2.44194;
+    std::cout << "Alpha e is: " << get_alpha_e(beta_e) << std::endl; // Expected alpha_e = -0.2
 
     // Unit testing for find_intersection function
 }
@@ -813,6 +846,7 @@ static void test_rk4_integration_function(
 }
 
 static void test_wrap_angle(){
+// Test function to evaluate functionality of the wrap to -pi/+pi range
 
     double test_angle;
 
@@ -834,6 +868,28 @@ static void test_wrap_angle(){
 
 }
 
+static void test_get_gain(){
+    // Function to evaluate the correctness of the get_gain function which is defined in controller.cpp
+
+    double alpha_e = 0.1;
+    double beta_e = get_beta_e_given_alpha(alpha_e);
+    std::cout << "Value of gain for beta_e: " << beta_e << " and alpha_e is: " << alpha_e << get_gain(beta_e, alpha_e) << std::endl;
+
+    alpha_e = -0.1;
+    beta_e = get_beta_e_given_alpha(alpha_e);
+    std::cout << "Value of gain for beta_e: " << beta_e << " and alpha_e is: " << alpha_e << get_gain(beta_e, alpha_e) << std::endl;
+
+
+    alpha_e = 0.2;
+    beta_e = get_beta_e_given_alpha(alpha_e);
+    std::cout << "Value of gain for beta_e: " << beta_e << " and alpha_e is: " << alpha_e << get_gain(beta_e, alpha_e) << std::endl;
+
+    alpha_e = -0.2;
+    beta_e = get_beta_e_given_alpha(alpha_e);
+    std::cout << "Value of gain for beta_e: " << beta_e << " and alpha_e is: " << alpha_e << get_gain(beta_e, alpha_e) << std::endl;
+
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////// Main //////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -847,9 +903,13 @@ int main(){
 
     // test_get_alpha_e();
 
+    test_get_gain();
+
+    gain_scheduler();
+
     // test_q_dot();
 
-    test_rk4_integration_function();
+    // test_rk4_integration_function();
 
     // test_wrap_angle();
 

@@ -4,183 +4,68 @@
 #include <iostream>
 #include <ct/optcon/optcon.h>
 #include "matplotlibcpp.h"
+#include "planner.h"
 
 // Forward simulation function that takes initial configuration and a piecewise linear path
 // as an input
 
-
-//Forward simuation parameters
-
 // forward lookahead radius
-double forward_lookahead_radius = 1.0;
+extern double forward_lookahead_radius;
 
 // backward lookahead radius
-double backward_lookahead_radius = 1.0;
+extern double backward_lookahead_radius;
 
 // tractor wheelbase
-double tractor_wheelbase = 0.3;
+extern double tractor_wheelbase;
 
 // trailer wheelbase
-double trailer_wheelbase = 0.8;
+extern double trailer_wheelbase;
 
 // Trailer hitch offset
-double tractor_m = 0.2;
+extern double tractor_m;
 
-double velocity = 1;
+// Tractor tracking velocity
+extern double velocity;
 
 namespace plt = matplotlibcpp;
 
-bool check_double_equal(
-    double& a,
-    double& b
-){
-    double epsilon = 0.001;
+// bool check_double_equal(
+//     double& a,
+//     double& b
+// ){
+//     double epsilon = 0.001;
 
-    if (fabs(a-b)<=epsilon){
-        return true;
-    }
+//     if (fabs(a-b)<=epsilon){
+//         return true;
+//     }
 
-    return false;
+//     return false;
 
-}
+// }
 
-double get_beta_desired(
-    const std::vector<double>& q_current, 
-    const std::vector<double>& intersection_point,
-    const bool& is_forward 
-){
 
-    if(!is_forward){
+// double get_alpha_e(
+//     double& beta_e
+// ){
 
-        double projected_distance_on_axle = (intersection_point[0] - q_current[0])*(cos(q_current[2] + M_PI_2)) + 
-        (intersection_point[1] - q_current[1])*(sin(q_current[2] + M_PI_2));
+//     // Find R3
+//     double r3 = (trailer_wheelbase + (tractor_m/cos(beta_e)))/(tan(beta_e));
 
-        double projected_distance_on_axle_normal = (intersection_point[0] - q_current[0])*(cos(q_current[2] + M_PI)) + 
-        (intersection_point[1] - q_current[1])*(sin(q_current[2] + M_PI));
+//     // calculate R1
+//     double r1 = sqrt(pow(r3,2) + pow(trailer_wheelbase,2) - pow(tractor_m,2));
 
-        double atan2val = atan2(projected_distance_on_axle_normal, projected_distance_on_axle);
+//     // calculate alpha_e
+//     double alpha_e = atan((tractor_wheelbase*(beta_e/fabs(beta_e)))/r1);
 
-        std::cout << "Projected distance on axle: " << projected_distance_on_axle << std::endl;
+//     std::cout << "Alpha_e value is: " << alpha_e << std::endl;
 
-        std::cout << "Projected distance on axle normal: " << projected_distance_on_axle_normal << std::endl;
-
-        std::cout << "atan2 value: " << atan2val << std::endl;
-
-        double theta_e=0.0;
-
-        // Theta_e is the heading error as decribed by the geometry of the pure-pursuit controller
-        // with respect to the center-line of the trailer. When the trailer is facing upwards and
-        // the centerline is extened downwards and the inersection point is below the rear axle,
-        // counter clockwise angles from the centerline is negative and clockwise angles from the centerline
-        // is positive.
-        //                  |
-        //                  |
-        //                  |
-        //             ||___|___||
-        //             ||+  |  -||
-
-        if(atan2val>=0 && atan2val<=M_PI_2){
-            theta_e = M_PI_2 - atan2val;
-        }
-        else if(atan2val>M_PI_2 && atan2val<=M_PI_2){
-            theta_e = M_PI_2 - atan2val;
-        }
-        else if(atan2val<0 && atan2val>=(-1*M_PI_2)){
-            theta_e = M_PI_2 + (-1*atan2val);
-        }
-        else{
-            theta_e = -1*(M_PI_2*3) + (-1*atan2val);            
-        }
-
-        // double theta_e = asin(projected_distance_on_axle/backward_lookahead_radius);
-
-        std::cout << "Calculated theta value is: " << theta_e << std::endl;
-
-        double beta_d = atan(((trailer_wheelbase*2*sin(theta_e))/backward_lookahead_radius));
-
-        std::cout << "Beta desired is: " << beta_d << std::endl;
-
-        return beta_d;
-    }
-
-    return 0.0;
-
-    /*
-    double projected_distance_on_axle = (intersection_point[0] - q_current[4])*(cos(q_current[2] + M_PI_2)) + 
-    (intersection_point[1] - q_current[5])*(sin(q_current[2] + M_PI_2));
-
-    double projected_distance_on_axle_normal = (intersection_point[0] - q_current[4])*(cos(q_current[2] + M_PI)) + 
-    (intersection_point[1] - q_current[5])*(sin(q_current[2] + M_PI));
-
-    double atan2val = atan2(projected_distance_on_axle_normal, projected_distance_on_axle);
-
-    std::cout << "Projected distance on axle: " << projected_distance_on_axle << std::endl;
-
-    std::cout << "Projected distance on axle normal: " << projected_distance_on_axle_normal << std::endl;
-
-    std::cout << "atan2 value: " << atan2val << std::endl;
-
-    double theta_e=0.0;
-
-    // Theta_e is the heading error as decribed by the geometry of the pure-pursuit controller
-    // with respect to the center-line of the trailer. When the trailer is facing upwards and
-    // the centerline is extened downwards and the inersection point is below the rear axle,
-    // counter clockwise angles from the centerline is negative and clockwise angles from the centerline
-    // is positive.
-    //                  |
-    //                  |
-    //                  |
-    //             ||___|___||
-    //             ||+  |  -||
-
-    if(atan2val>=0 && atan2val<=M_PI_2){
-        theta_e = M_PI_2 - atan2val;
-    }
-    else if(atan2val>M_PI_2 && atan2val<=M_PI_2){
-        theta_e = M_PI_2 - atan2val;
-    }
-    else if(atan2val<0 && atan2val>=(-1*M_PI_2)){
-        theta_e = M_PI_2 + (-1*atan2val);
-    }
-    else{
-        theta_e = -1*(M_PI_2*3) + (-1*atan2val);            
-    }
-
-    // double theta_e = asin(projected_distance_on_axle/backward_lookahead_radius);
-
-    std::cout << "Calculated theta value is: " << theta_e << std::endl;
-
-    double beta_d = atan(((trailer_wheelbase*2*sin(theta_e))/backward_lookahead_radius));
-
-    std::cout << "Beta desired is: " << beta_d << std::endl;
-
-    return beta_d;
-
-    */
-}
-
-double get_alpha_e(
-    double& beta_e
-){
-
-    // Find R3
-    double r3 = (trailer_wheelbase + (tractor_m/cos(beta_e)))/(tan(beta_e));
-
-    // calculate R1
-    double r1 = sqrt(pow(r3,2) + pow(trailer_wheelbase,2) - pow(tractor_m,2));
-
-    // calculate alpha_e
-    double alpha_e = atan((tractor_wheelbase*(beta_e/fabs(beta_e)))/r1);
-
-    std::cout << "Alpha_e value is: " << alpha_e << std::endl;
-
-    return alpha_e;
-}
+//     return alpha_e;
+// }
 
 // A matrix for equillibrium point
 double get_state_matrix(
-    double& alpha_e,
-    double& beta_e
+    const double& alpha_e,
+    const double& beta_e
 ){
     double r1 = tractor_wheelbase/tan(alpha_e);
 
@@ -219,8 +104,8 @@ double get_state_matrix(
 
 // B matrix for equillibrium point
 double get_input_matrix(
-    double& alpha_e,
-    double& beta_e
+    const double& alpha_e,
+    const double& beta_e
 ){
 
     double r1 = tractor_wheelbase/tan(alpha_e);
@@ -350,36 +235,68 @@ double get_their_beta_dot(
 }
 
 // Function that returns beta_e
-double get_beta_e_given_alpha(
-    double& alpha_e
+// double get_beta_e_given_alpha(
+//     double& alpha_e
+// ){
+
+//     double r1 = tractor_wheelbase/tan(alpha_e);
+
+//     std::cout << "R1 is : " << r1 << std::endl;
+
+//     double r2 = sqrt(pow(r1,2) + pow(tractor_m,2));
+
+//     double psi = atan(tractor_m/fabs(r1));
+
+//     std::cout << "R2 is: " << r2 << std::endl;
+
+//     double r3 = sqrt(pow(r2,2) - pow(trailer_wheelbase,2));
+// // 
+//     std::cout << "R3 in beta_e calculation is: " << r3 << std::endl;
+
+
+//     // double beta_e = atan(trailer_wheelbase/r3) + psi;
+
+//     // double beta_e = (alpha_e/fabs(alpha_e))*(atan(tractor_m/r1) + asin(trailer_wheelbase/(sqrt(pow(r1,2) + pow(tractor_m,2)))));
+//     double beta_e = (alpha_e/fabs(alpha_e))*((M_PI_2 - psi) + acos(trailer_wheelbase/r2));
+
+
+//     return beta_e;
+
+// }
+
+// 
+
+double get_gain(
+    const double& beta_e,
+    const double& alpha_e
 ){
 
-    double r1 = tractor_wheelbase/tan(alpha_e);
+    std::cout << "In get gain function" << std::endl;
 
-    // std::cout << "R1 is : " << r1 << std::endl;
+    const size_t state_dim = 1;
+    const size_t control_dim = 1;
 
-    double r2 = sqrt(pow(r1,2) + pow(tractor_m,2));
+    ct::core::StateMatrix<state_dim> A;
+    ct::core::ControlMatrix<control_dim> B;
+    ct::core::StateMatrix<state_dim> Q;
+    ct::core::ControlMatrix<control_dim> R;
 
-    double psi = atan(tractor_m/fabs(r1));
+    A(0,0) = get_state_matrix(alpha_e, beta_e);
+    B(0,0) = get_input_matrix(alpha_e, beta_e);
+    Q(0,0) = 10;
+    R(0,0) = 10;
 
-    // std::cout << "R2 is: " << r2 << std::endl;
+    std::cout << "A mat value: " << A(0,0) << std::endl;
+    std::cout << "A mat value: " << B(0,0) << std::endl;
 
-    // double r3 = sqrt(pow(r2,2) - pow(trailer_wheelbase,2));
-// 
-    // std::cout << "R3 in beta_e calculation is: " << r3 << std::endl;
+    ct::optcon::LQR<state_dim, control_dim> lqrSolver;
+    ct::core::FeedbackMatrix<state_dim, control_dim> K;
 
+    lqrSolver.compute(Q, R, A, B, K);
 
-    // double beta_e = atan(trailer_wheelbase/r3) + psi;
-
-    // double beta_e = (alpha_e/fabs(alpha_e))*(atan(tractor_m/r1) + asin(trailer_wheelbase/(sqrt(pow(r1,2) + pow(tractor_m,2)))));
-    double beta_e = (alpha_e/fabs(alpha_e))*((M_PI_2 - psi) + acos(trailer_wheelbase/r2));
-
-
-    return beta_e;
+    return K(0,0);
 
 }
-
-// 
 
 
 void gain_scheduler(
@@ -444,6 +361,11 @@ void gain_scheduler(
     ct::core::ControlMatrix<control_dim> B;
     ct::core::StateMatrix<state_dim> Q;
     ct::core::ControlMatrix<control_dim> R;
+
+    ct::optcon::LQR<state_dim, control_dim> lqrSolver;
+    ct::core::FeedbackMatrix<state_dim, control_dim> K;
+
+    lqrSolver.compute(Q, R, A, B, K);
 
     double a;
     double b;
@@ -656,38 +578,38 @@ void beta_dot_tester(
 }
 
 
-int main(){
+// int main(){
 
-    // test_find_intersection_point();
+//     // test_find_intersection_point();
 
-    // test_get_beta_desired();
+//     // test_get_beta_desired();
 
-    // test_get_alpha_e();
+//     // test_get_alpha_e();
 
-    // Prepare data.
-    // int n = 5000; // number of data points
-    // std::vector<double> x(n),y(n);
-    // for(int i=0; i<n; ++i) {
-    //     double t = 2*M_PI*i/n;
-    //     x.at(i) = 16*sin(t)*sin(t)*sin(t);
-    //     y.at(i) = 13*cos(t) - 5*cos(2*t) - 2*cos(3*t) - cos(4*t);
-    // }
+//     // Prepare data.
+//     // int n = 5000; // number of data points
+//     // std::vector<double> x(n),y(n);
+//     // for(int i=0; i<n; ++i) {
+//     //     double t = 2*M_PI*i/n;
+//     //     x.at(i) = 16*sin(t)*sin(t)*sin(t);
+//     //     y.at(i) = 13*cos(t) - 5*cos(2*t) - 2*cos(3*t) - cos(4*t);
+//     // }
 
-    // plot() takes an arbitrary number of (x,y,format)-triples.
-    // x must be iterable (that is, anything providing begin(x) and end(x)),
-    // y must either be callable (providing operator() const) or iterable.
-    // plt::plot(x, y, "r-");//, x, [](double d) { return 12.5+abs(sin(d)); }, "k-");
+//     // plot() takes an arbitrary number of (x,y,format)-triples.
+//     // x must be iterable (that is, anything providing begin(x) and end(x)),
+//     // y must either be callable (providing operator() const) or iterable.
+//     // plt::plot(x, y, "r-");//, x, [](double d) { return 12.5+abs(sin(d)); }, "k-");
 
 
-    // // show plots
-    // plt::show();
+//     // // show plots
+//     // plt::show();
 
-    gain_scheduler();
+//     gain_scheduler();
 
-    // beta_dot_tester();
+//     // beta_dot_tester();
 
-    return 0;
+//     return 0;
 
-}
+// }
 
 //

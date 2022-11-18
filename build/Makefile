@@ -130,19 +130,6 @@ forward_simulator/fast:
 .PHONY : forward_simulator/fast
 
 #=============================================================================
-# Target rules for targets named controller
-
-# Build rule for target.
-controller: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 controller
-.PHONY : controller
-
-# fast build rule for target.
-controller/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/controller.dir/build.make CMakeFiles/controller.dir/build
-.PHONY : controller/fast
-
-#=============================================================================
 # Target rules for targets named controller_new
 
 # Build rule for target.
@@ -160,7 +147,7 @@ src/controller.o: src/controller.cpp.o
 
 # target to build an object file
 src/controller.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/controller.dir/build.make CMakeFiles/controller.dir/src/controller.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/forward_simulator.dir/build.make CMakeFiles/forward_simulator.dir/src/controller.cpp.o
 .PHONY : src/controller.cpp.o
 
 src/controller.i: src/controller.cpp.i
@@ -168,7 +155,7 @@ src/controller.i: src/controller.cpp.i
 
 # target to preprocess a source file
 src/controller.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/controller.dir/build.make CMakeFiles/controller.dir/src/controller.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/forward_simulator.dir/build.make CMakeFiles/forward_simulator.dir/src/controller.cpp.i
 .PHONY : src/controller.cpp.i
 
 src/controller.s: src/controller.cpp.s
@@ -176,7 +163,7 @@ src/controller.s: src/controller.cpp.s
 
 # target to generate assembly for a file
 src/controller.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/controller.dir/build.make CMakeFiles/controller.dir/src/controller.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/forward_simulator.dir/build.make CMakeFiles/forward_simulator.dir/src/controller.cpp.s
 .PHONY : src/controller.cpp.s
 
 src/controller_new_convention.o: src/controller_new_convention.cpp.o
@@ -235,7 +222,6 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... controller"
 	@echo "... controller_new"
 	@echo "... forward_simulator"
 	@echo "... src/controller.o"

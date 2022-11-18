@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/forward_simulator.dir/src/controller.cpp.o"
+  "CMakeFiles/forward_simulator.dir/src/controller.cpp.o.d"
   "CMakeFiles/forward_simulator.dir/src/forward_simulator.cpp.o"
   "CMakeFiles/forward_simulator.dir/src/forward_simulator.cpp.o.d"
   "forward_simulator"
