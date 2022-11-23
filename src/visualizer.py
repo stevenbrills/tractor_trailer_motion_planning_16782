@@ -41,11 +41,14 @@ def parseFiileandCreateArray(filename):
         w = lines[1].split(' ')[1]
         h = int(h)
         w = int(w)
+        # FUNCTION TO READ TRAJECTORY AND STORE (X,Y,THETA,BETA) IN ARRAY
         x,y,theta,beta = lines[2].split(' ')
         theta = float(theta)
         beta = float(beta)
         x = float(x)
         y = float(y)
+
+        #CALL FUNCTION TO CONVERT THESE ARRAYS TO PIXELS
         tractor_coords, trailer_coords = convertToPixels(x,y,theta,beta,h)
         map_str = lines[3:]
         map_int = []
@@ -55,11 +58,22 @@ def parseFiileandCreateArray(filename):
     #convert map_int to numpy array
     map_int = np.array(map_int)
     #change tractor and trailer coords in map to 1
+
+    #CALL 
     tractor_coords = np.array(tractor_coords)
     trailer_coords = np.array(trailer_coords)
     
-    map_int[tuple(tractor_coords.T)] = 1
-    map_int[tuple(trailer_coords.T)] = 1
+    # map_int[tuple(tractor_coords.T)] = 1
+    # map_int[tuple(trailer_coords.T)] = 1
+    plt.figure()
+    p1 = [tractor_coords[0,1],tractor_coords[0,0]]
+    p2 = [tractor_coords[-1,1],tractor_coords[-1,0]]
+    x, y = [p1[0], p2[0]], [p1[1], p2[1]]
+    plt.plot(x, y, color = 'red', linewidth=15)
+    p1 = [trailer_coords[0,1],trailer_coords[0,0]]
+    p2 = [trailer_coords[-1,1],trailer_coords[-1,0]]
+    x, y = [p1[0], p2[0]], [p1[1], p2[1]]
+    plt.plot(x, y, color = 'green', linewidth=15)
     #display map_int as image
     plt.imshow(map_int)
     plt.show()
