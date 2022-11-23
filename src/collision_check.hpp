@@ -1,9 +1,9 @@
 #include <iostream>
-#define TRACTOR_WIDTH (5.0)
-#define L1 (10.0)
-#define L2 (10.0)
-#define BODY (1.0)
-#define DIAMETER (0.5)
+#define TRACTOR_WIDTH (0.0)
+#define L1 (1.0)
+#define L2 (1.0)
+#define BODY (0.0)
+#define DIAMETER (0.0)
 // #define map_width (100.0)
 // #define map_height (100.0)
 #define MAP_RESOLUTION (0.1)
@@ -77,8 +77,8 @@ class CollisionCheck {
             bool collided = false;
             computeTransformMatrices(theta, beta, x, y);
             computeCoords();
-            std::cout<<"Tractor coords: "<<tractor_coords<<"\n";
-            std::cout<<"Trailer coords: "<<trailer_coords<<"\n";
+            // std::cout<<"Tractor coords: "<<tractor_coords<<"\n";
+            // std::cout<<"Trailer coords: "<<trailer_coords<<"\n";
 
             //first go over all coordinates of the tractor and check if they are in the obstacle space
             int grid_x, grid_y;
