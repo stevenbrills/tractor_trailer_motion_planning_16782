@@ -5,7 +5,8 @@
 
 double get_gain(
     const double& beta_e,
-    const double& alpha_e
+    const double& alpha_e,
+    const double& velocity
 );
 
 void gain_scheduler();

@@ -29,43 +29,11 @@ extern double velocity;
 
 namespace plt = matplotlibcpp;
 
-// bool check_double_equal(
-//     double& a,
-//     double& b
-// ){
-//     double epsilon = 0.001;
-
-//     if (fabs(a-b)<=epsilon){
-//         return true;
-//     }
-
-//     return false;
-
-// }
-
-
-// double get_alpha_e(
-//     double& beta_e
-// ){
-
-//     // Find R3
-//     double r3 = (trailer_wheelbase + (tractor_m/cos(beta_e)))/(tan(beta_e));
-
-//     // calculate R1
-//     double r1 = sqrt(pow(r3,2) + pow(trailer_wheelbase,2) - pow(tractor_m,2));
-
-//     // calculate alpha_e
-//     double alpha_e = atan((tractor_wheelbase*(beta_e/fabs(beta_e)))/r1);
-
-//     std::cout << "Alpha_e value is: " << alpha_e << std::endl;
-
-//     return alpha_e;
-// }
-
 // A matrix for equillibrium point
 double get_state_matrix(
     const double& alpha_e,
-    const double& beta_e
+    const double& beta_e,
+    const double& velocity
 ){
     double r1 = tractor_wheelbase/tan(alpha_e);
 
@@ -75,29 +43,10 @@ double get_state_matrix(
 
     double r3 = trailer_wheelbase/sin(psi-beta_e);
 
-    // std::cout << "Psi: " << psi << std::endl;
-
-    // double A = -1*(((tractor_m/(tractor_wheelbase*trailer_wheelbase))*fabs(tan(alpha_e))*((1*sin(fabs(beta_e)))+(1*(cos(fabs(beta_e))/tan(psi))))));
-
     double A;
 
-    // if (alpha_e>=0){
-    //     A = (1/tractor_wheelbase)*tan(alpha_e)*-1*((tractor_m*cos(beta_e - psi))/(trailer_wheelbase*sin(psi)));
-    // }
-    // else{
-    //     A = (-1/tractor_wheelbase)*tan(alpha_e)*((tractor_m*cos((-1*beta_e) - psi))/(trailer_wheelbase*sin(psi)));
-    // }
+    A = velocity*(1/tractor_wheelbase)*tan(alpha_e)*(((tractor_m/trailer_wheelbase)*((-1*sin(psi)*sin(beta_e) -1*cos(psi)*cos(beta_e))/(sin(psi)))));
 
-    A = (1/tractor_wheelbase)*tan(alpha_e)*(((tractor_m/trailer_wheelbase)*((-1*sin(psi)*sin(beta_e) -1*cos(psi)*cos(beta_e))/(sin(psi)))));
-
-
-    // Other paper
-    // if (alpha_e>=0){
-    //     A = (-1/(tractor_wheelbase*trailer_wheelbase))*(tractor_m*tan(alpha_e)*(-1*sin(beta_e)) + (tractor_wheelbase*cos(beta_e)));
-    // }
-    // else{
-    //     A = 1*(-1/(tractor_wheelbase*trailer_wheelbase))*(tractor_m*tan(alpha_e)*(-1*sin(beta_e)) + (tractor_wheelbase*cos(beta_e)));
-    // }
 
     return A;
 }
@@ -105,7 +54,8 @@ double get_state_matrix(
 // B matrix for equillibrium point
 double get_input_matrix(
     const double& alpha_e,
-    const double& beta_e
+    const double& beta_e,
+    const double& velocity
 ){
 
     double r1 = tractor_wheelbase/tan(alpha_e);
@@ -116,27 +66,7 @@ double get_input_matrix(
 
     double r3 = trailer_wheelbase/sin(psi-beta_e);
 
-
-    // std::cout << "Psi: " << psi << std::endl;
-
-    // double B = ((1/(cos(alpha_e)*cos(alpha_e)*tractor_wheelbase)) - 
-    // ((tractor_m/(tractor_wheelbase*trailer_wheelbase*cos(alpha_e)*cos(alpha_e)))*
-    // ((cos(beta_e))+(-1*(sin(beta_e)/tan(psi))))));
-
-    // double B = ((1/(cos(fabs(alpha_e))*cos(fabs(alpha_e))*tractor_wheelbase)) - 
-    // ((tractor_m/(tractor_wheelbase*trailer_wheelbase*cos(fabs(alpha_e))*cos(fabs(alpha_e))))*
-    // (sin(fabs(beta_e) - psi)/sin(psi))));
-
     double B;
-
-    // if (alpha_e>=0){
-    //    B = (1/(tractor_wheelbase*pow(cos(alpha_e),2)))*(1-((tractor_m*sin(beta_e - psi))/(trailer_wheelbase*sin(psi))));
-    // }
-    // else{
-    //    B = (-1/(tractor_wheelbase*pow(cos(alpha_e),2)))*(1-((tractor_m*sin((-1*beta_e) - psi))/(trailer_wheelbase*sin(psi))));
-    // }
-
-    // B = (1/(tractor_wheelbase*pow(cos(alpha_e),2)))*(((tractor_m*sin(psi - beta_e))/(trailer_wheelbase*sin(psi))) - 1);
 
     double a = (1/tractor_wheelbase)*(1/pow(cos(alpha_e),2));
     double b = (tractor_m/trailer_wheelbase)*sin(psi-beta_e)/sin(psi);
@@ -148,49 +78,15 @@ double get_input_matrix(
 
     double e = pow(sin(alpha_e),2)*pow(sin(psi),2)*(pow(r1,2) + pow(tractor_m,2));
 
-// -1*(alpha_e/fabs(alpha_e))*
-
-    B = -1*(c*(d/e)  + a*(b-1));
-    // return b;
-
-
-
-
-
-    // B = a*(b - 1);
-    // B = (1*((pow(tan(alpha_e),2)) + 1)/(tractor_wheelbase))*(((tractor_m*sin(psi - beta_e))/(trailer_wheelbase*sin(psi))) - 1);
-
-    // a = -1*(tan(alpha_e)*tan(alpha_e) + 1)/tractor_wheelbase;
-    
-    // b = -(tractor_m*sin(beta_e-psi)*(tan(alpha_e)*tan(alpha_e) + 1))/(tractor_wheelbase*trailer_wheelbase*sin(psi));
-
-
-    // B = c + a*(b-1);
-
-
-
-
-    // if (alpha_e<0){
-    //     return -1*B;
-    // }
-    // return B;
-
-    // Other paper
-    // if (alpha_e>=0){
-    //     B = (-1/(tractor_wheelbase*trailer_wheelbase))*(((tractor_m*cos(beta_e))/(cos(alpha_e)*cos(alpha_e)))+(trailer_wheelbase/(cos(alpha_e)*cos(alpha_e))));
-    // }
-    // else{
-    //     B = (-1/(tractor_wheelbase*trailer_wheelbase))*(((tractor_m*cos(beta_e))/(cos(alpha_e)*cos(alpha_e)))+(trailer_wheelbase/(cos(alpha_e)*cos(alpha_e))));
-    // }
-
-    // std::cout << "B: " << B << std::endl;
+    B = -1*velocity*(c*(d/e)  + a*(b-1));
 
     return B;
 }
 
 double get_beta_dot(
     double& alpha,
-    double& beta
+    double& beta,
+    double& velocity
 ){
 
     double r1 = tractor_wheelbase/tan(alpha);
@@ -200,14 +96,6 @@ double get_beta_dot(
     double r2 = tractor_m/sin(psi);
 
     double r3 = trailer_wheelbase/sin(beta-psi);
-
-    // double beta_dot = (tan(alpha)/tractor_wheelbase)*(1 - ((tractor_m*sin(beta-psi))/(sin(psi)*trailer_wheelbase)));
-    // (alpha/fabs(alpha))*
-
-    // double beta_dot = (fabs(tan(alpha))/tractor_wheelbase)*(1 - ((tractor_m*sin(beta-psi))/(sin(psi)*trailer_wheelbase)));
-
-
-    // double beta_dot = velocity*((alpha/fabs(alpha))*(1/r1) - ((-1*alpha)/fabs(alpha))*((r2)/(r1*r3)));
 
     double beta_dot = velocity*((1/r1) + ((r2)/(r1*r3)));
 
@@ -234,41 +122,11 @@ double get_their_beta_dot(
 
 }
 
-// Function that returns beta_e
-// double get_beta_e_given_alpha(
-//     double& alpha_e
-// ){
-
-//     double r1 = tractor_wheelbase/tan(alpha_e);
-
-//     std::cout << "R1 is : " << r1 << std::endl;
-
-//     double r2 = sqrt(pow(r1,2) + pow(tractor_m,2));
-
-//     double psi = atan(tractor_m/fabs(r1));
-
-//     std::cout << "R2 is: " << r2 << std::endl;
-
-//     double r3 = sqrt(pow(r2,2) - pow(trailer_wheelbase,2));
-// // 
-//     std::cout << "R3 in beta_e calculation is: " << r3 << std::endl;
-
-
-//     // double beta_e = atan(trailer_wheelbase/r3) + psi;
-
-//     // double beta_e = (alpha_e/fabs(alpha_e))*(atan(tractor_m/r1) + asin(trailer_wheelbase/(sqrt(pow(r1,2) + pow(tractor_m,2)))));
-//     double beta_e = (alpha_e/fabs(alpha_e))*((M_PI_2 - psi) + acos(trailer_wheelbase/r2));
-
-
-//     return beta_e;
-
-// }
-
-// 
 
 double get_gain(
     const double& beta_e,
-    const double& alpha_e
+    const double& alpha_e,
+    const double& velocity
 ){
 
     std::cout << "In get gain function" << std::endl;
@@ -281,13 +139,13 @@ double get_gain(
     ct::core::StateMatrix<state_dim> Q;
     ct::core::ControlMatrix<control_dim> R;
 
-    A(0,0) = get_state_matrix(alpha_e, beta_e);
-    B(0,0) = get_input_matrix(alpha_e, beta_e);
+    A(0,0) = get_state_matrix(alpha_e, beta_e, velocity);
+    B(0,0) = get_input_matrix(alpha_e, beta_e, velocity);
     Q(0,0) = 10;
     R(0,0) = 10;
 
     std::cout << "A mat value: " << A(0,0) << std::endl;
-    std::cout << "A mat value: " << B(0,0) << std::endl;
+    std::cout << "B mat value: " << B(0,0) << std::endl;
 
     ct::optcon::LQR<state_dim, control_dim> lqrSolver;
     ct::core::FeedbackMatrix<state_dim, control_dim> K;
@@ -333,6 +191,7 @@ void gain_scheduler(
     // calculate the extents of alpha_e
     double alpha_e_max = atan(tractor_wheelbase/sqrt(pow(trailer_wheelbase,2) - pow(tractor_m,2)));
     double beta_e_max = get_beta_e_given_alpha(alpha_e_max);
+    double velocity = 1;
 
     // alpha_e_max = 0.2;
     // beta_e_max = 0.3;
@@ -343,14 +202,14 @@ void gain_scheduler(
 
     std::cout << "Maximum value of alpha_e: " << alpha_e_max << std::endl;
     std::cout << "Maximum value of beta_e: " << beta_e_max << std::endl;
-    std::cout << "A mat value: " << get_state_matrix(alpha_e_max, beta_e_max) << std::endl;
-    std::cout << "B mat value: " << get_input_matrix(alpha_e_max, beta_e_max) << std::endl;
+    std::cout << "A mat value: " << get_state_matrix(alpha_e_max, beta_e_max, velocity) << std::endl;
+    std::cout << "B mat value: " << get_input_matrix(alpha_e_max, beta_e_max, velocity) << std::endl;
 
 
     std::cout << "Minimum value of alpha_e: " << alpha_e_min << std::endl;
     std::cout << "Minimum value of beta_e: " << beta_e_min << std::endl;
-    std::cout << "A mat value: " << get_state_matrix(alpha_e_min, beta_e_min) << std::endl;
-    std::cout << "B mat value: " << get_input_matrix(alpha_e_min, beta_e_min) << std::endl;
+    std::cout << "A mat value: " << get_state_matrix(alpha_e_min, beta_e_min, velocity) << std::endl;
+    std::cout << "B mat value: " << get_input_matrix(alpha_e_min, beta_e_min, velocity) << std::endl;
 
 
 
@@ -398,8 +257,8 @@ void gain_scheduler(
         // alpha_e = 0.1;
         // beta_e = 0.1;
 
-        A(0,0) = get_state_matrix(alpha_e, beta_e);
-        B(0,0) = get_input_matrix(alpha_e, beta_e);
+        A(0,0) = get_state_matrix(alpha_e, beta_e, velocity);
+        B(0,0) = get_input_matrix(alpha_e, beta_e, velocity);
         Q(0,0) = 10;
         R(0,0) = 10;
 
@@ -418,7 +277,7 @@ void gain_scheduler(
 
         x[i] = alpha_e;
         y[i] = K(0,0);
-        beta_dots[i] = get_beta_dot(alpha_e, beta_e);
+        beta_dots[i] = get_beta_dot(alpha_e, beta_e, velocity);
 
     //    std::cout << "X-value is: " << x[i] << std::endl;
     //    std::cout << "Y-value is: " << y[i] << std::endl;
@@ -534,6 +393,8 @@ void beta_dot_tester(
     double a;
     double b;
 
+    double velocity = 1;
+
     // loop from -alpha_e_max to +alpha_e_max
     for(int i=0; i<n; i++){
         
@@ -546,7 +407,7 @@ void beta_dot_tester(
         // beta_e = get_beta_e_given_alpha(alpha_e);
 
         alphas[i] = beta;
-        betas[i] = get_beta_dot(test_constant_alpha, beta);
+        betas[i] = get_beta_dot(test_constant_alpha, beta, velocity);
 
 
         // x[i] = alpha_e;
@@ -561,7 +422,7 @@ void beta_dot_tester(
 
     std::cout << "Beta_e for the constant alpha is: " << test_beta_e << std::endl;
 
-    std::cout << "Beta dot for beta_e and test alpha is: " << get_beta_dot(test_constant_alpha, test_beta_e) << std::endl;
+    std::cout << "Beta dot for beta_e and test alpha is: " << get_beta_dot(test_constant_alpha, test_beta_e, velocity) << std::endl;
 
     
     plt::plot(x, y, "k-");

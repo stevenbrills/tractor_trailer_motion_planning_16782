@@ -1,0 +1,3 @@
+Update the find intersection function so that it loops through all line segments in the piecewise linear path
+and returns the correct intersection point
+
