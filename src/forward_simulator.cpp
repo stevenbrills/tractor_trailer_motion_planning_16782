@@ -100,6 +100,7 @@ static bool find_intersection_point(
 
                 intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
                 intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
+                std::cout << "equal intersection points" << std::endl;
                 std::cout << "id_start: " << id_start << "id_goal: " << id_goal << std::endl;
                 return true; // Intersection detected
 
@@ -117,6 +118,8 @@ static bool find_intersection_point(
 
                 intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
                 intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
+
+                std::cout << "UNEQUAL intersection points" << std::endl;
 
                 std::cout << "id_start: " << id_start << "id_goal: " << id_goal << std::endl;
 
@@ -208,16 +211,25 @@ double get_beta_desired(
 
     if(!is_forward){
 
+        // Transform the intersection point into the local frame of the vehicle
+        double tx = -1*((q_current[0]*cos(q_current[2])) + (q_current[1]*sin(q_current[2])));
+        double ty = -1*((-1*q_current[0]*sin(q_current[2])) + (q_current[1]*cos(q_current[2])));
 
 
-        double projected_distance_on_axle = fabs(intersection_point[0] - q_current[0])*(sin(-1*q_current[2])) + 
-        fabs(intersection_point[1] - q_current[1])*(cos(-1*q_current[2]));
+
+        // double projected_distance_on_axle = (intersection_point[0] - q_current[0])*(sin(-1*q_current[2])) + 
+        // (intersection_point[1] - q_current[1])*(cos(-1*q_current[2]));
+
+        double projected_distance_on_axle_normal = (intersection_point[0]*cos(q_current[2])) + (intersection_point[1]*sin(q_current[2])) + tx;
+
+        double projected_distance_on_axle = (-1*intersection_point[0]*sin(q_current[2])) + (intersection_point[1]*cos(q_current[2])) + ty;
+
 
         // double projected_distance_on_axle = (intersection_point[0] - q_current[0])*(cos(q_current[2] + M_PI_2)) + 
         // (intersection_point[1] - q_current[1])*(sin(q_current[2] + M_PI_2));
 
-        double projected_distance_on_axle_normal = fabs(intersection_point[0] - q_current[0])*(cos(-1*q_current[2])) + 
-        fabs(intersection_point[1] - q_current[1])*(sin(-1*q_current[2]));
+        // double projected_distance_on_axle_normal = (intersection_point[0] - q_current[0])*(cos(-1*q_current[2])) + 
+        // (intersection_point[1] - q_current[1])*(sin(-1*q_current[2]));
 
         double theta_e = atan2(projected_distance_on_axle, projected_distance_on_axle_normal);
 
@@ -532,6 +544,11 @@ static bool get_intersection_point_along_piecewise_linear(
         if(find_intersection_point(q_current, piecewise_linear, i, i+1, is_forward, intersection_point)){
             intersection_detected_in_prev_segment = true;
             previous_intersection_point = intersection_point;
+        };
+
+        if(find_intersection_point(q_current, piecewise_linear, i, i+1, is_forward, intersection_point) && (i==(piecewise_linear.size()-2))){
+            std::cout << "Entered here and returning true!!!" << std::endl;
+            return true;
         };
     }
 
@@ -1019,30 +1036,30 @@ static void test_forward_simulator(){
     get_tractor_axle_center(q_init);
 
     // Create a fake piecewise linear path
-    std::vector<std::vector<double>> path(3, std::vector<double>(2,0));
+    std::vector<std::vector<double>> path(4, std::vector<double>(2,0));
     path[0][0] = 0;
     path[0][1] = 0;
 
     path[1][0] = 0;
     path[1][1] = -5;
 
-    path[2][0] = -7;
+    path[2][0] = 7;
     path[2][1] = -6;
 
-    // path[3][0] = 9;
-    // path[3][1] = 0;
+    path[3][0] = 9;
+    path[3][1] = 0;
 
     std::vector<double> path_x, path_y;
 
     path_x.push_back(path[0][0]);
     path_x.push_back(path[1][0]);
     path_x.push_back(path[2][0]);
-    // path_x.push_back(path[3][0]);
+    path_x.push_back(path[3][0]);
 
     path_y.push_back(path[0][1]);
     path_y.push_back(path[1][1]);
     path_y.push_back(path[2][1]);
-    // path_y.push_back(path[3][1]);
+    path_y.push_back(path[3][1]);
 
     plt::plot(path_x, path_y, "k-");
 
@@ -1098,7 +1115,7 @@ int main(){
 
     // test_find_intersection_point();
 
-    test_get_beta_desired();
+    // test_get_beta_desired();
 
     // test_get_alpha_e();
 
@@ -1110,7 +1127,7 @@ int main(){
 
     // test_rk4_integration_function();
 
-    // test_forward_simulator();
+    test_forward_simulator();
 
     // test_wrap_angle();
 
