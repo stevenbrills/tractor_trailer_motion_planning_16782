@@ -28,7 +28,7 @@ double trailer_wheelbase = 0.8;
 double tractor_m = 0.2;
 
 // Tractor tracking velocity
-double velocity = -0.2;
+double velocity = 0.2;
 
 namespace plt = matplotlibcpp;
 
@@ -74,7 +74,7 @@ static bool find_intersection_point(
 
         double det = pow(b,2) - (4*a*c);
 
-        std::cout << "A: " << a << " B: " << b << " C: " << c << std::endl;
+        // std::cout << "A: " << a << " B: " << b << " C: " << c << std::endl;
 
         // if(det < 0){
         //     std::cout << "No real roots" << std::endl;
@@ -100,8 +100,8 @@ static bool find_intersection_point(
 
                 intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
                 intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
-                std::cout << "equal intersection points" << std::endl;
-                std::cout << "id_start: " << id_start << "id_goal: " << id_goal << std::endl;
+                // std::cout << "equal intersection points" << std::endl;
+                // std::cout << "id_start: " << id_start << "id_goal: " << id_goal << std::endl;
                 return true; // Intersection detected
 
             }
@@ -119,9 +119,9 @@ static bool find_intersection_point(
                 intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
                 intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
 
-                std::cout << "UNEQUAL intersection points" << std::endl;
+                // std::cout << "UNEQUAL intersection points" << std::endl;
 
-                std::cout << "id_start: " << id_start << "id_goal: " << id_goal << std::endl;
+                // std::cout << "id_start: " << id_start << "id_goal: " << id_goal << std::endl;
 
                 return true;  //intersection detected
 
@@ -129,7 +129,7 @@ static bool find_intersection_point(
 
         }
         // else{
-        std::cout << "No real roots: " << "id_start: " << id_start << "id_goal: " << id_goal << std::endl;
+        // std::cout << "No real roots: " << "id_start: " << id_start << "id_goal: " << id_goal << std::endl;
         return false;
 
         // }
@@ -151,11 +151,6 @@ static bool find_intersection_point(
         double c = pow((piecewise_linear[id_start][0] - q_current[4]),2) + pow((piecewise_linear[id_start][1] - q_current[5]),2) - pow(forward_lookahead_radius,2);
 
         double det = pow(b,2) - 4*a*c;
-
-        if(det < 0){
-            std::cout << "No real roots" << std::endl;
-            return false;
-        }
 
         // std::cout << "Determinant value could be near zero and fail equality, check performance " << std::endl;
         // std::cout << "Determinant value: " << det << std::endl;
@@ -192,10 +187,9 @@ static bool find_intersection_point(
             }
 
         }
-        // else{
+
         std::cout << "No real roots" << std::endl;
         return false;
-        // }
 
     }
 
@@ -209,79 +203,78 @@ double get_beta_desired(
     const bool& is_forward 
 ){
 
-    if(!is_forward){
-
-        // Transform the intersection point into the local frame of the vehicle
-        double tx = -1*((q_current[0]*cos(q_current[2])) + (q_current[1]*sin(q_current[2])));
-        double ty = -1*((-1*q_current[0]*sin(q_current[2])) + (q_current[1]*cos(q_current[2])));
 
 
-
-        // double projected_distance_on_axle = (intersection_point[0] - q_current[0])*(sin(-1*q_current[2])) + 
-        // (intersection_point[1] - q_current[1])*(cos(-1*q_current[2]));
-
-        double projected_distance_on_axle_normal = (intersection_point[0]*cos(q_current[2])) + (intersection_point[1]*sin(q_current[2])) + tx;
-
-        double projected_distance_on_axle = (-1*intersection_point[0]*sin(q_current[2])) + (intersection_point[1]*cos(q_current[2])) + ty;
+    // Transform the intersection point into the local frame of the vehicle
+    double tx = -1*((q_current[0]*cos(q_current[2])) + (q_current[1]*sin(q_current[2])));
+    double ty = -1*((-1*q_current[0]*sin(q_current[2])) + (q_current[1]*cos(q_current[2])));
 
 
-        // double projected_distance_on_axle = (intersection_point[0] - q_current[0])*(cos(q_current[2] + M_PI_2)) + 
-        // (intersection_point[1] - q_current[1])*(sin(q_current[2] + M_PI_2));
 
-        // double projected_distance_on_axle_normal = (intersection_point[0] - q_current[0])*(cos(-1*q_current[2])) + 
-        // (intersection_point[1] - q_current[1])*(sin(-1*q_current[2]));
+    // double projected_distance_on_axle = (intersection_point[0] - q_current[0])*(sin(-1*q_current[2])) + 
+    // (intersection_point[1] - q_current[1])*(cos(-1*q_current[2]));
 
-        double theta_e = atan2(projected_distance_on_axle, projected_distance_on_axle_normal);
+    double projected_distance_on_axle_normal = (intersection_point[0]*cos(q_current[2])) + (intersection_point[1]*sin(q_current[2])) + tx;
 
-        double turning_circle_radius = fabs(backward_lookahead_radius/(2*sin(theta_e)));
-
-        double beta_1 = atan(turning_circle_radius/trailer_wheelbase);
-
-        double beta_2 = acos(tractor_m/sqrt(pow(trailer_wheelbase,2)+pow(turning_circle_radius,2)));
-
-        double beta_d = (theta_e/fabs(theta_e))*(beta_1+beta_2);
-
-        std::cout << "Projected distance on axle: " << projected_distance_on_axle << std::endl;
-
-        std::cout << "Projected distance on axle normal: " << projected_distance_on_axle_normal << std::endl;
-
-        std::cout << "atan2 value: " << theta_e << std::endl;
-
-        std::cout << "Turning radius value is: " << turning_circle_radius << std::endl;
-        
-        std::cout << "Beta 1 componenet: " << beta_1 << std::endl;
-
-        std::cout << "Beta 2 componenet: " << beta_2 << std::endl;
-
-        // Theta_e is the heading error as decribed by the geometry of the pure-pursuit controller
-        // with respect to the center-line of the trailer. When the trailer is facing upwards and
-        // the centerline extends upwards shown below counter clockwise angles from the centerline
-        // are positive and clockwise angles from the centerline are negative.
-        //              \
-        //               \
-        //                \
-        //                 \
-        //                  |
-        //                  |
-        //                  |
-        //             ||+__|__-||
-        //             ||   |   ||
+    double projected_distance_on_axle = (-1*intersection_point[0]*sin(q_current[2])) + (intersection_point[1]*cos(q_current[2])) + ty;
 
 
-        // double theta_e = asin(projected_distance_on_axle/backward_lookahead_radius);
+    // double projected_distance_on_axle = (intersection_point[0] - q_current[0])*(cos(q_current[2] + M_PI_2)) + 
+    // (intersection_point[1] - q_current[1])*(sin(q_current[2] + M_PI_2));
 
-        std::cout << "Calculated theta value is: " << theta_e << std::endl;
+    // double projected_distance_on_axle_normal = (intersection_point[0] - q_current[0])*(cos(-1*q_current[2])) + 
+    // (intersection_point[1] - q_current[1])*(sin(-1*q_current[2]));
 
-        // double beta_d = atan(((trailer_wheelbase*2*sin(theta_e))/backward_lookahead_radius));
+    double theta_e = atan2(projected_distance_on_axle, projected_distance_on_axle_normal);
 
-        std::cout << "Beta desired is: " << beta_d << std::endl;
+    double turning_circle_radius = fabs(backward_lookahead_radius/(2*sin(theta_e)));
 
-        return beta_d;
-    }
+    double beta_1 = atan(turning_circle_radius/trailer_wheelbase);
+
+    double beta_2 = acos(tractor_m/sqrt(pow(trailer_wheelbase,2)+pow(turning_circle_radius,2)));
+
+    double beta_d = (theta_e/fabs(theta_e))*(beta_1+beta_2);
+
+    std::cout << "Projected distance on axle: " << projected_distance_on_axle << std::endl;
+
+    std::cout << "Projected distance on axle normal: " << projected_distance_on_axle_normal << std::endl;
+
+    std::cout << "atan2 value: " << theta_e << std::endl;
+
+    std::cout << "Turning radius value is: " << turning_circle_radius << std::endl;
+    
+    std::cout << "Beta 1 componenet: " << beta_1 << std::endl;
+
+    std::cout << "Beta 2 componenet: " << beta_2 << std::endl;
+
+    // Theta_e is the heading error as decribed by the geometry of the pure-pursuit controller
+    // with respect to the center-line of the trailer. When the trailer is facing upwards and
+    // the centerline extends upwards shown below counter clockwise angles from the centerline
+    // are positive and clockwise angles from the centerline are negative.
+    //              \
+    //               \
+    //                \
+    //                 \
+    //                  |
+    //                  |
+    //                  |
+    //             ||+__|__-||
+    //             ||   |   ||
+
+
+    // double theta_e = asin(projected_distance_on_axle/backward_lookahead_radius);
+
+    std::cout << "Calculated theta value is: " << theta_e << std::endl;
+
+    // double beta_d = atan(((trailer_wheelbase*2*sin(theta_e))/backward_lookahead_radius));
+
+    std::cout << "Beta desired is: " << beta_d << std::endl;
+
+    return beta_d;
 
     
 
-    return 0.0;
+    // return 0.0;
 
     /*
     double projected_distance_on_axle = (intersection_point[0] - q_current[4])*(cos(q_current[2] + M_PI_2)) + 
@@ -361,13 +354,58 @@ double get_beta_e_given_alpha(
 
 }
 
+double get_tractor_orientation(
+    const std::vector<double>& q_current
+){
+
+    if(q_current[3]>=0){
+        return q_current[2] + (M_PI - q_current[3]);
+    }
+
+    return (q_current[2] - (M_PI - fabs(q_current[3])));    
+}
+
 static void get_tractor_axle_center(
     std::vector<double>& q
 ){
 
-    q[4] = q[0] + trailer_wheelbase*cos(q[3]) + tractor_m*cos(M_PI - q[3] + q[2]);
-    q[5] = q[1] + trailer_wheelbase*sin(q[3]) + tractor_m*sin(M_PI - q[3] + q[2]);
+    double tractor_theta = get_tractor_orientation(q);
+    // std::cout << "X of trailer: " << q[0] << "  Y of trailer: " << q[1] << std::endl;
+    // std::cout << "Cos of trailer angle: " << cos(q[3]) << std::endl;
+    // std::cout << "Cos of tractor angle: " << cos(tractor_theta) << std::endl;
 
+    q[4] = q[0] + trailer_wheelbase*cos(q[2]) + tractor_m*cos(tractor_theta);
+    q[5] = q[1] + trailer_wheelbase*sin(q[2]) + tractor_m*sin(tractor_theta);
+
+}
+
+
+double get_alpha_for_forward_motion(
+    const std::vector<double>& intersection_point,
+    const std::vector<double>& q_current
+){
+
+    // Frame to be transformed into is the tractor axle frame
+    // Use the axle center x,y and theta of tractor
+    double theta_tractor = get_tractor_orientation(q_current);
+    // std::cout << "Orientation of the tractor is: " << theta_tractor << std::endl;
+    // std::cout << "X of tractor: " << q_current[4] << "Y of tractor: " << q_current[5] << std::endl;
+
+    // Transform the intersection point into the local frame of the vehicle
+    double tx = -1*((q_current[4]*cos(theta_tractor)) + (q_current[5]*sin(theta_tractor)));
+    double ty = -1*((-1*q_current[4]*sin(theta_tractor)) + (q_current[5]*cos(theta_tractor)));
+
+    // Projected distances 
+    double projected_distance_on_axle_normal = (intersection_point[0]*cos(theta_tractor)) + (intersection_point[1]*sin(theta_tractor)) + tx;
+    double projected_distance_on_axle = (-1*intersection_point[0]*sin(theta_tractor)) + (intersection_point[1]*cos(theta_tractor)) + ty;
+
+    double r1 = (pow(forward_lookahead_radius,2))/(2*fabs(projected_distance_on_axle));
+
+    double alpha = atan(tractor_wheelbase/r1)*(projected_distance_on_axle/fabs(projected_distance_on_axle));
+
+    // std::cout << "Computed alpha value is: " << alpha << std::endl;
+
+    return alpha;
 }
 
 double get_alpha_e(
@@ -500,6 +538,7 @@ const double& timestep
     q_next[2] = wrap_angle(q_next[2]);
     q_next[3] = wrap_angle(q_next[3]);
 
+    // For every calculated future state, also calculate the axle center of the tractor
     get_tractor_axle_center(q_next);
 
     // q_next[4] = q_next[0] + trailer_wheelbase*cos(q_next[3]) + tractor_m*cos(M_PI - q_next[3] + q_next[2]);
@@ -531,12 +570,12 @@ static bool get_intersection_point_along_piecewise_linear(
     for (int i=0; i<(piecewise_linear.size()-1); i++){
 
         if(intersection_detected_in_prev_segment && find_intersection_point(q_current, piecewise_linear, i, i+1, is_forward, intersection_point)){
-            std::cout << "Found intersection in segment " << i << std::endl;
+            // std::cout << "Found intersection in segment " << i << std::endl;
             return true;
         };
 
         if(intersection_detected_in_prev_segment && (!find_intersection_point(q_current, piecewise_linear, i, i+1, is_forward, intersection_point))){
-            std::cout << "Found intersection in segment " << i-1 << std::endl;
+            // std::cout << "Found intersection in segment " << i-1 << std::endl;
             intersection_point = previous_intersection_point;
             return true;
         };
@@ -547,7 +586,7 @@ static bool get_intersection_point_along_piecewise_linear(
         };
 
         if(find_intersection_point(q_current, piecewise_linear, i, i+1, is_forward, intersection_point) && (i==(piecewise_linear.size()-2))){
-            std::cout << "Entered here and returning true!!!" << std::endl;
+            // std::cout << "Entered here and returning true!!!" << std::endl;
             return true;
         };
     }
@@ -555,17 +594,27 @@ static bool get_intersection_point_along_piecewise_linear(
     return false;
 }
 
-
-
-
-
-std::vector<std::vector<double>> forward_simulator(
+std::vector<std::vector<double>> segment_simulator(
     std::vector<double> q_init,
-    std::vector<std::vector<double>> piecewise_linear,
+    std::vector<std::vector<double>> segment,
     bool is_forward
 ){
 
-    std::vector<double> x,y;
+    // Set velocity sign based on direction
+    if(is_forward){
+        velocity = fabs(velocity);
+    }
+    else{
+        velocity = -1*fabs(velocity);
+    }
+
+    // Initialize variables for simulation
+    double beta_desired;
+    double beta_e;
+    double alpha_e;
+    double alpha;
+    std::vector<double> q_next;
+
 
     // Create the vector of vectors which stores the trajectory
     std::vector<std::vector<double>> trajectory;
@@ -576,13 +625,10 @@ std::vector<std::vector<double>> forward_simulator(
     // Simulation time step
     double timestep = 0.001;
 
-    // bool is_forward = false;
-
     // Check if inputs are valid
-    if (piecewise_linear.size()<1){
-        throw std::runtime_error("No piecewise linear input has been received.");
+    if ((segment.size()<2) || (segment.size()>2)){
+        throw std::runtime_error("Size of segment in segmentwise simulator is less than or greater than 2 which is invalid. Size should exactly equal two! Segment must be defined by a pair of points.");
     }
-
 
     // Initialize the intersection point to be at the center of the rear axle, a controlled junk value
     std::vector<double> intersection_point{q_init[0], q_init[1]};
@@ -592,41 +638,43 @@ std::vector<std::vector<double>> forward_simulator(
 
     // Run the simulation till the intersection point of the look-ahead circle and piecewise linear path
     // reaches the last point along the piecewise linear path
-    // std::cout << intersection_point[0] << std::endl;
-    // std::cout << intersection_point[1] << std::endl;
-    // std::cout << piecewise_linear[piecewise_linear.size()-1][0] << std::endl;
-    // std::cout << piecewise_linear[piecewise_linear.size()-1][1] << std::endl;
-
-    // std::cout << !(check_double_equal(intersection_point[0], piecewise_linear[piecewise_linear.size()-1][0]) &&
-    // check_double_equal(intersection_point[1], piecewise_linear[piecewise_linear.size()-1][1]))
-    // << std::endl;
 
     bool found_intersection_flag=true;
 
-    int while_loop_counter_testing = 0;
+    int while_loop_counter = 0;
 
     while(
-        !(check_double_equal(intersection_point[0], piecewise_linear[piecewise_linear.size()-1][0]) &&
-    check_double_equal(intersection_point[1], piecewise_linear[piecewise_linear.size()-1][1]))
+        !(check_double_equal(intersection_point[0], segment[segment.size()-1][0]) &&
+    check_double_equal(intersection_point[1], segment[segment.size()-1][1]))
     ){
 
-        // if (while_loop_counter_testing==500){
-        //     break;
-        // }
-
-        while_loop_counter_testing++;
-
-        std::cout << "Simulating" << std::endl;
+        // std::cout << "Simulating" << std::endl;
 
         // For every line segment in the piecewise linear path, search for intersection points
         // Find the intersection points of the lookahead circle and piecewise linear path
-        found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, piecewise_linear, is_forward, intersection_point);
-        std::cout << "Intersection X: " << intersection_point[0] << ", Intersection Y: " << intersection_point[1] << std::endl;
+        found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
 
-        std::cout << "Was an intersection found?: " << found_intersection_flag << std::endl;
+        // If the new segment starts and the intersection cannot be found (precision issues for double and a result of 
+        // termination critera of last segment), inflate the lookaheads by 1%
+        if(while_loop_counter==0 && (!found_intersection_flag)){
+            std::cout << "Inflation required!" << std::endl;
+            if(is_forward){
+                forward_lookahead_radius = forward_lookahead_radius*1.01;
+                found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
+                forward_lookahead_radius = forward_lookahead_radius/1.01;
+            }
+            else{
+                backward_lookahead_radius = backward_lookahead_radius*1.05;
+                std::cout << "Inflated backward lookahead radius: " << backward_lookahead_radius << std::endl;
+                std::cout << "Current trailer X: " << q_current[0] << "Current Trailer Y: " << q_current[1] << std::endl;
+                found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
+                std::cout << "Dist to segment start: " << sqrt(pow(segment[0][0] - q_current[0],2)+pow(segment[0][1] - q_current[1],2)) << std::endl;
+                backward_lookahead_radius = backward_lookahead_radius/1.05;
+            }
+        }
 
-        x.push_back(q_current[0]);
-        y.push_back(q_current[1]);
+        // std::cout << "Intersection X: " << intersection_point[0] << ", Intersection Y: " << intersection_point[1] << std::endl;
+        // std::cout << "Was an intersection found?: " << found_intersection_flag << std::endl;
 
         if(!found_intersection_flag){
             break;
@@ -637,42 +685,125 @@ std::vector<std::vector<double>> forward_simulator(
         // not updated the intersection point from the initalization of the intersection point with the trailers axle center
 
 
+        // Here, use the forward/reverse flag in the piece-wise linear input to compute control inputs
+        if(!is_forward){
 
-        // beta desired works only for the reversing simulation now, need to create a different approach for the forward motion
-        double beta_desired = get_beta_desired(q_current, intersection_point, is_forward);
+            // beta desired works only for the reversing simulation now, need to create a different approach for the forward motion
+            beta_desired = get_beta_desired(q_current, intersection_point, is_forward);
 
-        // Add the proportional gain beta
-        double beta_e = beta_desired + beta_prop_gain*(beta_desired - q_current[3]);
+            // Add the proportional gain beta
+            beta_e = beta_desired + beta_prop_gain*(beta_desired - q_current[3]);
 
-        // Get the value of alpha_e from beta_e using the pre-compensation link
-        double alpha_e = get_alpha_e(beta_desired);
+            // Get the value of alpha_e from beta_e using the pre-compensation link
+            alpha_e = get_alpha_e(beta_desired);
 
-        // Use alpha_e to compute steering angle input
-        double alpha = alpha_e - get_gain(beta_e, alpha_e, velocity)*(q_current[3] - beta_e);
+            // Use alpha_e to compute steering angle input
+            alpha = alpha_e - get_gain(beta_e, alpha_e, velocity)*(q_current[3] - beta_e);
 
-        // Integrate motion through 
-        std::vector<double> q_next = rk4_integrator(alpha, velocity, q_current, timestep);
+            // Integrate motion through 
+            q_next = rk4_integrator(alpha, velocity, q_current, timestep);
+
+        }
+        else{
+
+            // Use alpha_e to compute steering angle input
+            alpha = get_alpha_for_forward_motion(intersection_point, q_current);
+            alpha = 1*alpha;
+
+            // Integrate motion through 
+            q_next = rk4_integrator(alpha, velocity, q_current, timestep);
+
+        }
 
         q_current = q_next;
 
         // Append the next state into the trajectory
-        q_next.push_back(beta_desired);
+        q_next.push_back(alpha);
         trajectory.push_back(q_next);
+
+        while_loop_counter++;
 
     }
 
     std::cout << "Simulation complete!" << std::endl;
     if(!found_intersection_flag){
         std::cout << "Simulation cut off since no intersection point found" << std::endl;
+        // std::cout << "Terminated intersection point is"
     }
-    std::cout << "Size of the simulated trajectory" << trajectory.size() << std::endl;
+
+    return trajectory;
+}
+
+
+std::vector<std::vector<double>> forward_simulator(
+    std::vector<double> q_init,
+    std::vector<std::vector<double>> piecewise_linear
+){
+
+    // Create a vector to store flags for whether a segment was tracked or not
+    // std::vector<bool> tracking_history(piecewise_linear.size(),false);
+
+    // Temporary variables for trajectory plotting
+    std::vector<double> x,y;
+
+    // Create the vector of vectors which stores the trajectory
+    std::vector<std::vector<double>> final_trajectory;
+    std::vector<std::vector<double>> temp_trajectory;
+
+    // Add the initial configuration of the tractor-trailer into the trajectory
+    final_trajectory.push_back(q_init);
+
+    // Check if inputs are valid
+    if (piecewise_linear.size()<2){
+        throw std::runtime_error("Piecewise linear input path is of insufficient size of elements!");
+    }
+
+    // Set the current state to the initial state of the trailer
+    std::vector<double> q_current=q_init;
+
+    // Run the simulation till the intersection point of the look-ahead circle and piecewise linear path
+    // reaches the last point along the piecewise linear path
+
+    bool found_intersection_flag=true;
+
+    // Current sim segment is different from the piecewise linear since it does not store the direction boolean flag
+    // and is only one segment of the piecewise linear
+    std::vector<std::vector<double>> current_sim_segment(2,std::vector<double>(2,0));
+
+    for (int i=0; i<piecewise_linear.size()-1; i++){
+
+        std::cout << "Simulating segment: " << i << std::endl;
+
+        // Select the correct segment from the piecewise linear path for simulation
+        current_sim_segment[0][0] = piecewise_linear[i][0];
+        current_sim_segment[0][1] = piecewise_linear[i][1];
+        current_sim_segment[1][0] = piecewise_linear[i+1][0];
+        current_sim_segment[1][1] = piecewise_linear[i+1][1];
+
+        if(i==0){
+            final_trajectory = segment_simulator(q_current, current_sim_segment, piecewise_linear[i+1][2]);
+        }
+        else{
+            temp_trajectory = segment_simulator(q_current, current_sim_segment, piecewise_linear[i+1][2]);
+            final_trajectory.insert(final_trajectory.end(), temp_trajectory.begin(), temp_trajectory.end());
+        }
+
+        q_current = final_trajectory[final_trajectory.size()-1];
+
+    }
+
+    // Copying x and y from trajectory for visulization
+    for (int i=0; i<final_trajectory.size(); i++){
+        x.push_back(final_trajectory[i][4]);
+        y.push_back(final_trajectory[i][5]);
+    }
 
     plt::plot(x, y, "k-");
 
     // show plots
     plt::show();
 
-    return trajectory;
+    return final_trajectory;
 
 }
 
@@ -1014,7 +1145,6 @@ static void test_get_gain(){
     beta_e = get_beta_e_given_alpha(alpha_e);
     std::cout << "Value of gain for beta_e: " << beta_e << " and alpha_e is: " << alpha_e << get_gain(beta_e, alpha_e, velocity) << std::endl;
 
-
     alpha_e = 0.2;
     beta_e = get_beta_e_given_alpha(alpha_e);
     std::cout << "Value of gain for beta_e: " << beta_e << " and alpha_e is: " << alpha_e << get_gain(beta_e, alpha_e, velocity) << std::endl;
@@ -1025,7 +1155,33 @@ static void test_get_gain(){
 
 }
 
-static void test_forward_simulator(){
+static void test_get_alpha_for_forward_motion(){
+
+    std::vector<double> q_init(6,0);
+    std::vector<double> intersection_point(2,0);
+
+    q_init[0] = 0;
+    q_init[1] = 0;
+    q_init[2] = M_PI_2;
+    q_init[3] = M_PI;
+    get_tractor_axle_center(q_init);
+    std::cout << "X of tractor: " << q_init[4] << "   Y of tractor: " << q_init[5] << std::endl;
+
+    intersection_point[0] = 0;
+    intersection_point[1] = 2;
+    std::cout << "Alpha is: " << get_alpha_for_forward_motion(intersection_point, q_init) << std::endl;
+
+    intersection_point[0] = -0.2;
+    intersection_point[1] = 2;
+    std::cout << "Alpha is: " << get_alpha_for_forward_motion(intersection_point, q_init) << std::endl;
+
+    intersection_point[0] = 0.2;
+    intersection_point[1] = 2;
+    std::cout << "Alpha is: " << get_alpha_for_forward_motion(intersection_point, q_init) << std::endl;
+
+}
+
+static void test_forward_simulator_reversing(){
 
     // Create a fake starting condition for the tractor and trailer
     std::vector<double> q_init(6,0);
@@ -1036,18 +1192,22 @@ static void test_forward_simulator(){
     get_tractor_axle_center(q_init);
 
     // Create a fake piecewise linear path
-    std::vector<std::vector<double>> path(4, std::vector<double>(2,0));
+    std::vector<std::vector<double>> path(4, std::vector<double>(3,0));
     path[0][0] = 0;
     path[0][1] = 0;
+    path[0][2] = 0;
 
     path[1][0] = 0;
     path[1][1] = -5;
+    path[1][2] = 0;
 
     path[2][0] = 7;
     path[2][1] = -6;
+    path[2][2] = 0;
 
     path[3][0] = 9;
     path[3][1] = 0;
+    path[3][2] = 0;
 
     std::vector<double> path_x, path_y;
 
@@ -1071,10 +1231,97 @@ static void test_forward_simulator(){
     std::cout << "Size of test path is: " << path.size() << std::endl;
 
     // Boolean flag for forward or backward motion
-    bool is_forward = false;
+    // bool is_forward = false;
 
     // Get the simulated trajectory
-    std::vector<std::vector<double>> traj = forward_simulator(q_init, path, is_forward);
+    std::vector<std::vector<double>> traj = forward_simulator(q_init, path);
+
+    // Save the computed trajectory into a text file
+	std::ofstream test_trajectory_file;
+	test_trajectory_file.open("../output/TestReversingTrajectory.txt", std::ios::trunc); // Creates new or replaces existing file
+	if (!test_trajectory_file.is_open()) {
+		throw std::runtime_error("Cannot open file");
+	}
+	test_trajectory_file << "This is a test trajectory computed for unit testing" << std::endl; // Description
+	test_trajectory_file << "Forward lookahead radius: " << forward_lookahead_radius << "Backward lookahead radius: " << 
+    backward_lookahead_radius << "Tractor Wheelbase: " << tractor_wheelbase << "Trailer Wheelbase: " << trailer_wheelbase << 
+    "Tractor hitch offset: " << tractor_m << "Velocity" << velocity << std::endl; // Tractor and Trailer Parameters
+
+    test_trajectory_file << std::endl;
+
+    test_trajectory_file << "Piecewise Linear Path" << std::endl;
+
+    for (auto& segment : path){
+        test_trajectory_file << segment[0] << ", " << segment[1] << std::endl;
+    }
+
+    for (auto& state : traj){
+        test_trajectory_file << state[0] << "\t" << state[1] << "\t" << state[2] << "\t" <<
+        state[3] << "\t" << state[4] << "\t" << state[5] << "\t" << state[6] << std::endl;
+    }
+
+	test_trajectory_file << "End of Trajectory Sequence" << std::endl;
+
+    // Function to evaluate the correctness of the get_gain function which is defined in controller.cpp
+
+}
+
+static void test_forward_simulator_forward_motion(){
+
+    // Create a fake starting condition for the tractor and trailer
+    std::vector<double> q_init(6,0);
+    q_init[0] = 0;
+    q_init[1] = 0;
+    q_init[2] = M_PI_2;
+    q_init[3] = 2.2;
+    get_tractor_axle_center(q_init);
+
+    std::cout << "Tractor axle center X: " << q_init[4] << "Tractor axle center Y: " << q_init[5] << std::endl;
+
+    // Create a fake piecewise linear path
+    std::vector<std::vector<double>> path(4, std::vector<double>(3,0));
+    path[0][0] = 0;
+    path[0][1] = 0;
+    path[0][2] = 1;
+
+    path[1][0] = 0;
+    path[1][1] = 5;
+    path[1][2] = 1;
+
+    path[2][0] = -7;
+    path[2][1] = 6;
+    path[2][2] = 1;
+
+    path[3][0] = -9;
+    path[3][1] = 0;
+    path[3][2] = 1;
+
+    std::vector<double> path_x, path_y;
+
+    path_x.push_back(path[0][0]);
+    path_x.push_back(path[1][0]);
+    path_x.push_back(path[2][0]);
+    path_x.push_back(path[3][0]);
+
+    path_y.push_back(path[0][1]);
+    path_y.push_back(path[1][1]);
+    path_y.push_back(path[2][1]);
+    path_y.push_back(path[3][1]);
+
+    plt::plot(path_x, path_y, "k-");
+
+    // show plots
+    plt::show();
+
+
+
+    std::cout << "Size of test path is: " << path.size() << std::endl;
+
+    // Boolean flag for forward or backward motion
+    // bool is_forward = false;
+
+    // Get the simulated trajectory
+    std::vector<std::vector<double>> traj = forward_simulator(q_init, path);
 
     // Save the computed trajectory into a text file
 	std::ofstream test_trajectory_file;
@@ -1127,7 +1374,11 @@ int main(){
 
     // test_rk4_integration_function();
 
-    test_forward_simulator();
+    // test_forward_simulator_reversing();
+
+    test_forward_simulator_forward_motion();
+
+    // test_get_alpha_for_forward_motion();
 
     // test_wrap_angle();
 
