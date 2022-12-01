@@ -1,14 +1,14 @@
 #include <iostream>
-#define TRACTOR_WIDTH (5.0)
-#define L1 (10.0)
-#define L2 (10.0)
+#define TRACTOR_WIDTH (0.2)
+#define L1 (1.0)
+#define L2 (1.0)
 #define BODY (1.0)
 #define DIAMETER (0.5)
 // #define map_width (100.0)
 // #define map_height (100.0)
 #define MAP_RESOLUTION (0.1)
 #define RECT_RESOLUTION (0.1)
-#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Core>
 
 class CollisionCheck {
 
@@ -22,21 +22,21 @@ class CollisionCheck {
 
         inline void computeTransformMatrices (double theta, double beta, int x, int y) {
             
-            trailer_transform << cos(theta), -sin(theta), x + L2/2*cos(theta),
-            sin(theta), cos(theta), y + L2/2*sin(theta),
+            trailer_transform << cos(theta), -sin(theta), x + l_trailer/2*cos(theta),
+            sin(theta), cos(theta), y + l_trailer/2*sin(theta),
             0, 0, 1;
-            tractor_transform << cos(theta+beta), -sin(theta+beta), x + L2*cos(theta) + l_tractor/2*cos(theta+beta),
-            sin(theta+beta), cos(theta+beta), y + L2*sin(theta) + l_tractor/2*sin(theta+beta),
+            tractor_transform << cos(theta+beta), -sin(theta+beta), x + l_trailer*cos(theta) + l_tractor/2*cos(theta+beta),
+            sin(theta+beta), cos(theta+beta), y + l_trailer*sin(theta) + l_tractor/2*sin(theta+beta),
             0, 0, 1;
         }
 
         inline void computeCoords() {
 
-            int steps_w= (int) (TRACTOR_WIDTH/RECT_RESOLUTION)+1;
-            int steps_l= (int) (l_tractor/RECT_RESOLUTION)+1;
+            int steps_w= (int) (TRACTOR_WIDTH/RECT_RESOLUTION)+2;
+            int steps_l= (int) (l_tractor/RECT_RESOLUTION)+2;
 
             //define an eigen matrix to store the coordinates of the tractor_rect
-            Eigen::Matrix3Xd tractor_rect_coords(3,(steps_w+1)*(steps_l+1));
+            Eigen::Matrix3Xd tractor_rect_coords(3,(steps_w)*(steps_l));
             for (int i = 0; i <= steps_l; i++) {
                 for (int j = 0; j < steps_w; j++) {
                     tractor_rect_coords(0,i*(steps_w+1)+j) = -TRACTOR_WIDTH/2 + j*float(TRACTOR_WIDTH/steps_w);
