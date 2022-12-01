@@ -11,14 +11,18 @@ class collision_check():
         self.L1 = 1.0
         self.DIAMETER = 0.5 
         self.BODY= 0.5
-        self.l_tractor = self.BODY + self.L1 + self.DIAMETER/2
-        self.l_trailer = self.L2 + self.DIAMETER/2
+        # self.l_tractor = self.BODY + self.L1 + self.DIAMETER/2
+        # self.l_trailer = self.L2 + self.DIAMETER/2
+        self.l_tractor = 4
+        self.l_trailer = 4
         self.TRACTOR_WIDTH = 0.5
         self.RECT_RESOLUTION = 0.05
-        self.MAP_RESOLUTION = 0.1
-        self.map_width = 10
-        self.map_height = 10
+        self.MAP_RESOLUTION = 0.2
+        self.map_width = 20
+        self.map_height = 20
         self.world_map = loadtxt('./src/map1.txt')
+        assert(self.world_map.shape[0] == self.map_height/self.MAP_RESOLUTION)
+        assert(self.world_map.shape[1] == self.map_width/self.MAP_RESOLUTION)
         self.tractor_coords = np.zeros((3, 1))
         self.trailer_coords = np.zeros((3, 1))
         self.tractor_transform = np.zeros((3, 3))
@@ -75,26 +79,26 @@ class collision_check():
         # ax2.plot(self.tractor_coords[0, :], self.tractor_coords[1, :], 'b.')
         # ax1.plot(tractor_rect_coords[0, :], tractor_rect_coords[1, :], 'r.')
 
-        # fig = plt.figure(figsize=(9,9))
-        # gs = GridSpec(nrows=2, ncols=2)
-        # ax0 = fig.add_subplot(gs[0, 0])
-        # ax1 = fig.add_subplot(gs[1, 0])
-        # ax0.set_xlim(-self.l_tractor/2-self.RECT_RESOLUTION*2, self.l_tractor/2+self.RECT_RESOLUTION*2)
-        # ax0.set_ylim(-self.TRACTOR_WIDTH/2-self.RECT_RESOLUTION*2, self.TRACTOR_WIDTH/2+self.RECT_RESOLUTION*2)
-        # ax1.set_xlim(-self.l_trailer/2-self.RECT_RESOLUTION*2, self.l_trailer/2+self.RECT_RESOLUTION*2)
-        # ax1.set_ylim(-self.TRACTOR_WIDTH/2-self.RECT_RESOLUTION*2, self.TRACTOR_WIDTH/2+self.RECT_RESOLUTION*2)
-        # ax0.set_aspect('equal')
-        # ax1.set_aspect('equal')
+        fig = plt.figure(figsize=(9,9))
+        gs = GridSpec(nrows=2, ncols=2)
+        ax0 = fig.add_subplot(gs[0, 0])
+        ax1 = fig.add_subplot(gs[1, 0])
+        ax0.set_xlim(-self.l_tractor/2-self.RECT_RESOLUTION*2, self.l_tractor/2+self.RECT_RESOLUTION*2)
+        ax0.set_ylim(-self.TRACTOR_WIDTH/2-self.RECT_RESOLUTION*2, self.TRACTOR_WIDTH/2+self.RECT_RESOLUTION*2)
+        ax1.set_xlim(-self.l_trailer/2-self.RECT_RESOLUTION*2, self.l_trailer/2+self.RECT_RESOLUTION*2)
+        ax1.set_ylim(-self.TRACTOR_WIDTH/2-self.RECT_RESOLUTION*2, self.TRACTOR_WIDTH/2+self.RECT_RESOLUTION*2)
+        ax0.set_aspect('equal')
+        ax1.set_aspect('equal')
 
-        # ax0.plot(tractor_rect_coords[0, :], tractor_rect_coords[1, :], 'rs')
-        # ax1.plot(trailer_rect_coords[0, :], trailer_rect_coords[1, :], 'bs')
-        # ax2 = fig.add_subplot(gs[:, 1])
-        # ax2.set_aspect('equal')
-        # ax2.set_xlim(0, self.map_width)
-        # ax2.set_ylim(0, self.map_height)
-        # ax2.plot(self.tractor_coords[0, :], self.tractor_coords[1, :], 'rs')
-        # ax2.plot(self.trailer_coords[0, :], self.trailer_coords[1, :], 'bs')
-        # plt.savefig('test.png')
+        ax0.plot(tractor_rect_coords[0, :], tractor_rect_coords[1, :], 'rs')
+        ax1.plot(trailer_rect_coords[0, :], trailer_rect_coords[1, :], 'bs')
+        ax2 = fig.add_subplot(gs[:, 1])
+        ax2.set_aspect('equal')
+        ax2.set_xlim(0, self.map_width)
+        ax2.set_ylim(0, self.map_height)
+        ax2.plot(self.tractor_coords[0, :], self.tractor_coords[1, :], 'rs')
+        ax2.plot(self.trailer_coords[0, :], self.trailer_coords[1, :], 'bs')
+        plt.savefig('test.png')
 
     def checkCollision(self):
         grid_height= int(self.map_height/self.MAP_RESOLUTION)
@@ -119,7 +123,7 @@ class collision_check():
                 collided = True
                 print("Collision detected at trailer point ", self.trailer_coords[0, i], ", ", self.trailer_coords[1, i])
                 break
-        return 0 if collided else 1   
+        return 0 if collided else print("No collision detected")
        
     
     def visualise(self):
@@ -135,12 +139,12 @@ class collision_check():
             self.world_map[grid_height-grid_y_trailer-1, grid_x_trailer] = 1
         fig2 = plt.figure(figsize=(9,9))
         plt.imshow(self.world_map, interpolation='nearest')
-        plt.savefig('col.png')
+        plt.savefig('test2.png')
 
     
 if __name__=='__main__':
     cc = collision_check()
-    cc.computeTransformMatrices(0, 45, 2,3)
+    cc.computeTransformMatrices(45, 45, 5,2)
     cc.computeCoords()
     cc.checkCollision()
     cc.visualise()
