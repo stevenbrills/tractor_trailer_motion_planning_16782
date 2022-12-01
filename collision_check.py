@@ -105,28 +105,37 @@ class collision_check():
         for i in range(self.tractor_coords.shape[1]):
             grid_x_tractor = int(self.tractor_coords[0, i]/self.MAP_RESOLUTION)
             grid_y_tractor = int(self.tractor_coords[1, i]/self.MAP_RESOLUTION)
-            self.world_map[grid_height-grid_y_tractor-1, grid_x_tractor] = 1
             # check if the grid_x_tractor and grid_y_tractor are within the map bounds and if the point is in the obstacle space
-            # if grid_x_tractor < 0 or grid_x_tractor >= int(self.map_width/self.MAP_RESOLUTION) or grid_y_tractor < 0 or grid_y_tractor >= int(self.map_height/self.MAP_RESOLUTION) or self.world_map[grid_height-grid_y_tractor-1, grid_x_tractor] > 0:
-            #     collided = True
-            #     print("Collision detected at tractor point ", self.tractor_coords[0, i], ", ", self.tractor_coords[1, i])
-            #     break
-       
+            if grid_x_tractor < 0 or grid_x_tractor >= int(self.map_width/self.MAP_RESOLUTION) or grid_y_tractor < 0 or grid_y_tractor >= int(self.map_height/self.MAP_RESOLUTION) or self.world_map[grid_height-grid_y_tractor-1, grid_x_tractor] > 0:
+                collided = True
+                print("Collision detected at tractor point ", self.tractor_coords[0, i], ", ", self.tractor_coords[1, i])
+                break
+
         #now go over all coordinates of the trailer and check if they are in the obstacle space
         for i in range(self.trailer_coords.shape[1]):
             grid_x_trailer = int(self.trailer_coords[0, i]/self.MAP_RESOLUTION)
             grid_y_trailer = int(self.trailer_coords[1, i]/self.MAP_RESOLUTION)
-            self.world_map[grid_height-grid_y_trailer-1, grid_x_trailer] = 1
-            # if grid_x_trailer < 0 or grid_x_trailer >= int(self.map_width/self.MAP_RESOLUTION) or grid_y_trailer < 0 or grid_y_trailer >= int(self.map_height/self.MAP_RESOLUTION) or self.world_map[grid_height-grid_y_trailer-1, grid_x_trailer] > 0:
-            #     collided = True
-            #     print("Collision detected at trailer point ", self.trailer_coords[0, i], ", ", self.trailer_coords[1, i])
-            #     break
+            if grid_x_trailer < 0 or grid_x_trailer >= int(self.map_width/self.MAP_RESOLUTION) or grid_y_trailer < 0 or grid_y_trailer >= int(self.map_height/self.MAP_RESOLUTION) or self.world_map[grid_height-grid_y_trailer-1, grid_x_trailer] > 0:
+                collided = True
+                print("Collision detected at trailer point ", self.trailer_coords[0, i], ", ", self.trailer_coords[1, i])
+                break
+        return 0 if collided else 1   
        
-        # return 0 if collided else 1   
-        #new figure 
+    
+    def visualise(self):
+        grid_height= int(self.map_height/self.MAP_RESOLUTION)
+        for i in range(self.tractor_coords.shape[1]):
+            grid_x_tractor = int(self.tractor_coords[0, i]/self.MAP_RESOLUTION)
+            grid_y_tractor = int(self.tractor_coords[1, i]/self.MAP_RESOLUTION)
+            self.world_map[grid_height-grid_y_tractor-1, grid_x_tractor] = 1
+       
+        for i in range(self.trailer_coords.shape[1]):
+            grid_x_trailer = int(self.trailer_coords[0, i]/self.MAP_RESOLUTION)
+            grid_y_trailer = int(self.trailer_coords[1, i]/self.MAP_RESOLUTION)
+            self.world_map[grid_height-grid_y_trailer-1, grid_x_trailer] = 1
         fig2 = plt.figure(figsize=(9,9))
         plt.imshow(self.world_map, interpolation='nearest')
-        plt.show()
+        plt.savefig('col.png')
 
     
 if __name__=='__main__':
@@ -134,5 +143,6 @@ if __name__=='__main__':
     cc.computeTransformMatrices(0, 45, 2,3)
     cc.computeCoords()
     cc.checkCollision()
+    cc.visualise()
 
    
