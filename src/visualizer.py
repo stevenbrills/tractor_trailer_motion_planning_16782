@@ -15,9 +15,9 @@ import argparse
 #define MAP_RESOLUTION (0.1)
 #define RECT_RESOLUTION (0.1)
 TRACTOR_WIDTH = 2.0
-L1 = 1.0
-L2 = 1.0
-BODY = 1.0
+L1 = 0.3
+L2 = 0.8
+BODY = 0.2
 DIAMETER = 0.5
 MAP_RESOLUTION = 0.1
 RECT_RESOLUTION = 0.1
@@ -38,43 +38,66 @@ def readMap(mapfile):
     mapdata = mapdata.astype(int)
     return mapdata
 
-def convertToPixels(x,y,theta,beta):
+# def convertToPixels(x,y,theta,beta):
+#     tractor_coords = []
+#     trailer_coords = []
+#     theta = float(theta)
+#     beta = float(beta)
+#     steps=int(max(L1,L2)/MAP_RESOLUTION)
+#     for i in range(0, steps+1):
+#         x1 = int((x+i/steps*L2*np.cos(theta))/MAP_RESOLUTION)
+#         y1 = int((y+i/steps*L2*np.sin(theta))/MAP_RESOLUTION)
+#         trailer_coords.append([x1,y1])
+#         x2 = int((x+L2*np.cos(theta)+i/steps*L1*np.cos(theta+beta))/MAP_RESOLUTION)
+#         y2 = int((y+L2*np.sin(theta)+i/steps*L1*np.sin(theta+beta))/MAP_RESOLUTION)
+#         tractor_coords.append([x2,y2])
+
+#     ic(trailer_coords)
+#     ic(tractor_coords)  
+#     return tractor_coords, trailer_coords
+
+def calculateEndPoints(x,y,theta,beta):
+    tract_length = L1+BODY
     tractor_coords = []
     trailer_coords = []
     theta = float(theta)
     beta = float(beta)
-    steps=int(max(L1,L2)/MAP_RESOLUTION)
-    for i in range(0, steps+1):
-        x1 = int((x+i/steps*L2*np.cos(theta))/MAP_RESOLUTION)
-        y1 = int((y+i/steps*L2*np.sin(theta))/MAP_RESOLUTION)
-        trailer_coords.append([x1,y1])
-        x2 = int((x+L2*np.cos(theta)+i/steps*L1*np.cos(theta+beta))/MAP_RESOLUTION)
-        y2 = int((y+L2*np.sin(theta)+i/steps*L1*np.sin(theta+beta))/MAP_RESOLUTION)
-        tractor_coords.append([x2,y2])
+    trailer_coords.append([x,y])
+    x1 = (x+L2*np.cos(theta))
+    y1 = (y+L2*np.sin(theta))
+    trailer_coords.append([x1,y1])
 
-    ic(trailer_coords)
-    ic(tractor_coords)  
+    tractor_coords.append([x1,y1])
+    x2 = (x+L2*np.cos(theta)+tract_length*np.cos(theta+beta))
+    y2 = (y+L2*np.sin(theta)+tract_length*np.sin(theta+beta))
+    tractor_coords.append([x2,y2])
+
+    # ic(trailer_coords)
+    # ic(tractor_coords)  
     return tractor_coords, trailer_coords
     
-def createSingleFrame(i, mapData, tractor_coords, trailer_coords, includePrevious):
+def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious):
 
     if not includePrevious:
         plt.clf()
     tractorData = tractor_coords[i]
     trailerData = trailer_coords[i]
     artists = []
-    artists.append(plt.imshow(1-mapData.T, cmap = plt.cm.gray))
-    print("tractorData: ", tractorData[0][1], tractorData[1][0])
+    # artists.append(plt.imshow(1-mapData.T, cmap = plt.cm.gray))
+    # print("tractorData: ", tractorData[0][1], tractorData[1][0])
     # print("trailerData: ", trailerData)
-    p1 = [tractorData[0][1],tractorData[0][0]]
-    p2 = [tractorData[-1][1],tractorData[-1][0]]
+    p1 = [tractorData[0][0],tractorData[0][1]]
+    p2 = [tractorData[-1][0],tractorData[-1][1]]
     x_trac, y_tract = [p1[0], p2[0]], [p1[1], p2[1]]
     # plt.plot(x, y, color = 'red', linewidth=15)
-    p1 = [trailerData[0][1],trailerData[0][0]]
-    p2 = [trailerData[-1][1],trailerData[-1][0]]
+    p1 = [trailerData[0][0],trailerData[0][1]]
+    p2 = [trailerData[-1][0],trailerData[-1][1]]
     x_trailer, y_trailer = [p1[0], p2[0]], [p1[1], p2[1]]
+    plt.xlim(-10,0)
+    plt.ylim(0,10)
     artists.append(plt.plot(x_trailer, y_trailer, color = 'blue', linewidth=8))
     artists.append(plt.plot(x_trac, y_tract, color = 'red', linewidth=8))
+    print("i value: ", i)
     return artists
 
 def parseFiileandCreateArray():
@@ -82,7 +105,7 @@ def parseFiileandCreateArray():
     parser.add_argument("--filename", help="filepath with solution", type=str, default="output.txt")
     parser.add_argument("--map_file", help="filepath with solution", type=str, default="map.txt")
     parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="output.gif", required=False)
-    parser.add_argument("--fps", help="frames per second", type=int, default=4, required=False)
+    parser.add_argument("--fps", help="frames per second", type=int, default=30, required=False)
     parser.add_argument("--incPrev", help="include previous poses (1), else don't (0). Note this slows gif creation speed",
                                         type=int, default=0, required=False)
     
@@ -114,23 +137,29 @@ def parseFiileandCreateArray():
     path_reversible = []
     tractor_coords = []
     trailer_coords = []
+    i = 0
     with open(args.filename) as f:
         lines = f.readlines()
         for line in lines:
-            x,y,theta,beta = line.split(' ')
-            x = float(x)
-            y = float(y)
-            theta = float(theta)
-            beta = float(beta)
-            tractor_coords_temp, trailer_coords_temp = convertToPixels(x,y,theta,beta)
-            tractor_coords.append(tractor_coords_temp)
-            trailer_coords.append(trailer_coords_temp)
+            if i%100 == 0:
+                print("Processing line: ", i)
+                x,y,theta,beta,x2,y2,alpha = line.split(' ')
+                x = float(x)
+                y = float(y)
+                theta = float(theta)
+                beta = float(beta)
+                tractor_coords_temp, trailer_coords_temp = calculateEndPoints(x,y,theta,beta)
+                tractor_coords.append(tractor_coords_temp)
+                trailer_coords.append(trailer_coords_temp)
+            i+=1
     #change tractor and trailer coords in map to 1
     fig = plt.figure()
     numFrames = len(tractor_coords)
+    print("numFrames: ", numFrames)
     ani = FuncAnimation(fig, createSingleFrame, repeat=False,
-        frames=numFrames, fargs=[map_int, tractor_coords, trailer_coords, args.incPrev])    
+        frames=numFrames, fargs=[ tractor_coords, trailer_coords, args.incPrev])    
     ani.save(args.gifFilepath, dpi=300, writer=PillowWriter(fps=args.fps))
+    print("Saved gif to: ", args.gifFilepath)
 
 if __name__ == "__main__":
     parseFiileandCreateArray()
