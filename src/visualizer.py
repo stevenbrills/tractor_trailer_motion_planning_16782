@@ -1,6 +1,12 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from icecream import ic
+from matplotlib.animation import FuncAnimation, PillowWriter  # For gif
+
+import pdb # Use this for debugging python!
+matplotlib.use('Agg')
+import argparse
 #define TRACTOR_WIDTH (2.0)
 #define L1 (5.0)
 #define L2 (5.0)
@@ -15,7 +21,24 @@ BODY = 1.0
 DIAMETER = 0.5
 MAP_RESOLUTION = 0.1
 RECT_RESOLUTION = 0.1
-def convertToPixels(x,y,theta,beta, h):
+
+
+def readMap(mapfile):
+    """ Input: mapfile path
+    Output: 2D numpy array with binary values based on the map
+    """
+    with open(mapfile) as f:
+        line = f.readline()  # e.g. "height 50"
+        height = int(line.split(' ')[1])
+        line = f.readline()  # e.g. "width 50"
+        width = int(line.split(' ')[1])
+        mapdata = np.array([line.rstrip().split(" ") for line in f])
+
+    mapdata.reshape((width,height))
+    mapdata = mapdata.astype(int)
+    return mapdata
+
+def convertToPixels(x,y,theta,beta):
     tractor_coords = []
     trailer_coords = []
     theta = float(theta)
@@ -32,24 +55,54 @@ def convertToPixels(x,y,theta,beta, h):
     ic(trailer_coords)
     ic(tractor_coords)  
     return tractor_coords, trailer_coords
+    
+def createSingleFrame(i, mapData, tractor_coords, trailer_coords, includePrevious):
 
-def parseFiileandCreateArray(filename):
+    if not includePrevious:
+        plt.clf()
+    tractorData = tractor_coords[i]
+    trailerData = trailer_coords[i]
+    artists = []
+    artists.append(plt.imshow(1-mapData.T, cmap = plt.cm.gray))
+    print("tractorData: ", tractorData[0][1], tractorData[1][0])
+    # print("trailerData: ", trailerData)
+    p1 = [tractorData[0][1],tractorData[0][0]]
+    p2 = [tractorData[-1][1],tractorData[-1][0]]
+    x_trac, y_tract = [p1[0], p2[0]], [p1[1], p2[1]]
+    # plt.plot(x, y, color = 'red', linewidth=15)
+    p1 = [trailerData[0][1],trailerData[0][0]]
+    p2 = [trailerData[-1][1],trailerData[-1][0]]
+    x_trailer, y_trailer = [p1[0], p2[0]], [p1[1], p2[1]]
+    artists.append(plt.plot(x_trailer, y_trailer, color = 'blue', linewidth=8))
+    artists.append(plt.plot(x_trac, y_tract, color = 'red', linewidth=8))
+    return artists
+
+def parseFiileandCreateArray():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--filename", help="filepath with solution", type=str, default="output.txt")
+    parser.add_argument("--map_file", help="filepath with solution", type=str, default="map.txt")
+    parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="output.gif", required=False)
+    parser.add_argument("--fps", help="frames per second", type=int, default=4, required=False)
+    parser.add_argument("--incPrev", help="include previous poses (1), else don't (0). Note this slows gif creation speed",
+                                        type=int, default=0, required=False)
+    
+    args = parser.parse_args()
+    assert(args.gifFilepath.endswith(".gif"))  # Make sure it ends with a .gif extension
+    assert(args.incPrev == 0 or args.incPrev == 1)  # 0 is don't include, 1 is include
+
     map_int = []
-    with open(filename) as f:
+
+    with open(args.map_file) as f:
         lines = f.readlines()
         h = lines[0].split(' ')[1]
         w = lines[1].split(' ')[1]
         h = int(h)
         w = int(w)
         # FUNCTION TO READ TRAJECTORY AND STORE (X,Y,THETA,BETA) IN ARRAY
-        x,y,theta,beta = lines[2].split(' ')
-        theta = float(theta)
-        beta = float(beta)
-        x = float(x)
-        y = float(y)
+        
 
         #CALL FUNCTION TO CONVERT THESE ARRAYS TO PIXELS
-        tractor_coords, trailer_coords = convertToPixels(x,y,theta,beta,h)
+        
         map_str = lines[3:]
         map_int = []
         for line in map_str:
@@ -57,26 +110,27 @@ def parseFiileandCreateArray(filename):
 
     #convert map_int to numpy array
     map_int = np.array(map_int)
+
+    path_reversible = []
+    tractor_coords = []
+    trailer_coords = []
+    with open(args.filename) as f:
+        lines = f.readlines()
+        for line in lines:
+            x,y,theta,beta = line.split(' ')
+            x = float(x)
+            y = float(y)
+            theta = float(theta)
+            beta = float(beta)
+            tractor_coords_temp, trailer_coords_temp = convertToPixels(x,y,theta,beta)
+            tractor_coords.append(tractor_coords_temp)
+            trailer_coords.append(trailer_coords_temp)
     #change tractor and trailer coords in map to 1
+    fig = plt.figure()
+    numFrames = len(tractor_coords)
+    ani = FuncAnimation(fig, createSingleFrame, repeat=False,
+        frames=numFrames, fargs=[map_int, tractor_coords, trailer_coords, args.incPrev])    
+    ani.save(args.gifFilepath, dpi=300, writer=PillowWriter(fps=args.fps))
 
-    #CALL 
-    tractor_coords = np.array(tractor_coords)
-    trailer_coords = np.array(trailer_coords)
-    
-    # map_int[tuple(tractor_coords.T)] = 1
-    # map_int[tuple(trailer_coords.T)] = 1
-    plt.figure()
-    p1 = [tractor_coords[0,1],tractor_coords[0,0]]
-    p2 = [tractor_coords[-1,1],tractor_coords[-1,0]]
-    x, y = [p1[0], p2[0]], [p1[1], p2[1]]
-    plt.plot(x, y, color = 'red', linewidth=15)
-    p1 = [trailer_coords[0,1],trailer_coords[0,0]]
-    p2 = [trailer_coords[-1,1],trailer_coords[-1,0]]
-    x, y = [p1[0], p2[0]], [p1[1], p2[1]]
-    plt.plot(x, y, color = 'green', linewidth=15)
-    #display map_int as image
-    plt.imshow(map_int)
-    plt.show()
-
-
-parseFiileandCreateArray('/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/maps/map1.txt')
+if __name__ == "__main__":
+    parseFiileandCreateArray()
