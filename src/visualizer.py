@@ -93,8 +93,8 @@ def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious):
     p1 = [trailerData[0][0],trailerData[0][1]]
     p2 = [trailerData[-1][0],trailerData[-1][1]]
     x_trailer, y_trailer = [p1[0], p2[0]], [p1[1], p2[1]]
-    plt.xlim(-10,0)
-    plt.ylim(0,10)
+    plt.xlim(-2,10)
+    plt.ylim(-10,2)
     artists.append(plt.plot(x_trailer, y_trailer, color = 'blue', linewidth=8))
     artists.append(plt.plot(x_trac, y_tract, color = 'red', linewidth=8))
     print("i value: ", i)
