@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/controller_new.dir/src/controller_new_convention.cpp.o -o controller_new  /usr/local/lib/libct_plot.so /usr/lib/x86_64-linux-gnu/libpython3.10.so -lpthread -ldl -llapack 
