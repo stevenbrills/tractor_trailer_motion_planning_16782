@@ -794,8 +794,8 @@ std::vector<std::vector<double>> forward_simulator(
 
     // Copying x and y from trajectory for visulization
     for (int i=0; i<final_trajectory.size(); i++){
-        x.push_back(final_trajectory[i][4]);
-        y.push_back(final_trajectory[i][5]);
+        x.push_back(final_trajectory[i][0]);
+        y.push_back(final_trajectory[i][1]);
     }
 
     plt::plot(x, y, "k-");
@@ -1256,8 +1256,8 @@ static void test_forward_simulator_reversing(){
     }
 
     for (auto& state : traj){
-        test_trajectory_file << state[0] << "\t" << state[1] << "\t" << state[2] << "\t" <<
-        state[3] << "\t" << state[4] << "\t" << state[5] << "\t" << state[6] << std::endl;
+        test_trajectory_file << state[0] << " " << state[1] << " " << state[2] << " " <<
+        (M_PI - state[3]) << " " << state[4] << " " << state[5] << " " << state[6] << std::endl;
     }
 
 	test_trajectory_file << "End of Trajectory Sequence" << std::endl;
@@ -1279,7 +1279,7 @@ static void test_forward_simulator_forward_motion(){
     std::cout << "Tractor axle center X: " << q_init[4] << "Tractor axle center Y: " << q_init[5] << std::endl;
 
     // Create a fake piecewise linear path
-    std::vector<std::vector<double>> path(4, std::vector<double>(3,0));
+    std::vector<std::vector<double>> path(5, std::vector<double>(3,0));
     path[0][0] = 0;
     path[0][1] = 0;
     path[0][2] = 1;
@@ -1296,17 +1296,25 @@ static void test_forward_simulator_forward_motion(){
     path[3][1] = 0;
     path[3][2] = 1;
 
+    path[4][0] = 2;
+    path[4][1] = 0;
+    path[4][2] = 1;
+
     std::vector<double> path_x, path_y;
 
     path_x.push_back(path[0][0]);
     path_x.push_back(path[1][0]);
     path_x.push_back(path[2][0]);
     path_x.push_back(path[3][0]);
+    path_x.push_back(path[4][0]);
+
 
     path_y.push_back(path[0][1]);
     path_y.push_back(path[1][1]);
     path_y.push_back(path[2][1]);
     path_y.push_back(path[3][1]);
+    path_y.push_back(path[4][1]);
+
 
     plt::plot(path_x, path_y, "k-");
 
@@ -1325,7 +1333,7 @@ static void test_forward_simulator_forward_motion(){
 
     // Save the computed trajectory into a text file
 	std::ofstream test_trajectory_file;
-	test_trajectory_file.open("../output/TestReversingTrajectory.txt", std::ios::trunc); // Creates new or replaces existing file
+	test_trajectory_file.open("../output/TestForwardTrajectory.txt", std::ios::trunc); // Creates new or replaces existing file
 	if (!test_trajectory_file.is_open()) {
 		throw std::runtime_error("Cannot open file");
 	}
@@ -1343,8 +1351,103 @@ static void test_forward_simulator_forward_motion(){
     }
 
     for (auto& state : traj){
-        test_trajectory_file << state[0] << "\t" << state[1] << "\t" << state[2] << "\t" <<
-        state[3] << "\t" << state[4] << "\t" << state[5] << "\t" << state[6] << std::endl;
+        test_trajectory_file << state[0] << " " << state[1] << " " << state[2] << " " <<
+        (M_PI - state[3]) << " " << state[4] << " " << state[5] << " " << state[6] << std::endl;
+    }
+
+	test_trajectory_file << "End of Trajectory Sequence" << std::endl;
+
+    // Function to evaluate the correctness of the get_gain function which is defined in controller.cpp
+
+}
+
+
+static void test_forward_simulator_mixed_path(){
+
+    // Create a fake starting condition for the tractor and trailer
+    std::vector<double> q_init(6,0);
+    q_init[0] = 0;
+    q_init[1] = 0;
+    q_init[2] = M_PI_2;
+    q_init[3] = 2.2;
+    get_tractor_axle_center(q_init);
+
+    std::cout << "Tractor axle center X: " << q_init[4] << "Tractor axle center Y: " << q_init[5] << std::endl;
+
+    // Create a fake piecewise linear path
+    std::vector<std::vector<double>> path(5, std::vector<double>(3,0));
+    path[0][0] = 0;
+    path[0][1] = 0;
+    path[0][2] = 1;
+
+    path[1][0] = 0;
+    path[1][1] = 15;
+    path[1][2] = 1;
+
+    path[2][0] = 1;
+    path[2][1] = 3;
+    path[2][2] = 0;
+
+    path[3][0] = 9;
+    path[3][1] = 6;
+    path[3][2] = 0;
+
+    path[4][0] = 12;
+    path[4][1] = 14;
+    path[4][2] = 0;
+
+    std::vector<double> path_x, path_y;
+
+    path_x.push_back(path[0][0]);
+    path_x.push_back(path[1][0]);
+    path_x.push_back(path[2][0]);
+    path_x.push_back(path[3][0]);
+    path_x.push_back(path[4][0]);
+
+    path_y.push_back(path[0][1]);
+    path_y.push_back(path[1][1]);
+    path_y.push_back(path[2][1]);
+    path_y.push_back(path[3][1]);
+    path_y.push_back(path[4][1]);
+
+
+    plt::plot(path_x, path_y, "k-");
+
+    // show plots
+    plt::show();
+
+
+
+    std::cout << "Size of test path is: " << path.size() << std::endl;
+
+    // Boolean flag for forward or backward motion
+    // bool is_forward = false;
+
+    // Get the simulated trajectory
+    std::vector<std::vector<double>> traj = forward_simulator(q_init, path);
+
+    // Save the computed trajectory into a text file
+	std::ofstream test_trajectory_file;
+	test_trajectory_file.open("../output/TestForwardTrajectory.txt", std::ios::trunc); // Creates new or replaces existing file
+	if (!test_trajectory_file.is_open()) {
+		throw std::runtime_error("Cannot open file");
+	}
+	test_trajectory_file << "This is a test trajectory computed for unit testing" << std::endl; // Description
+	test_trajectory_file << "Forward lookahead radius: " << forward_lookahead_radius << "Backward lookahead radius: " << 
+    backward_lookahead_radius << "Tractor Wheelbase: " << tractor_wheelbase << "Trailer Wheelbase: " << trailer_wheelbase << 
+    "Tractor hitch offset: " << tractor_m << "Velocity" << velocity << std::endl; // Tractor and Trailer Parameters
+
+    test_trajectory_file << std::endl;
+
+    test_trajectory_file << "Piecewise Linear Path" << std::endl;
+
+    for (auto& segment : path){
+        test_trajectory_file << segment[0] << ", " << segment[1] << std::endl;
+    }
+
+    for (auto& state : traj){
+        test_trajectory_file << state[0] << "," << state[1] << "," << state[2] << "," <<
+        (M_PI - state[3]) << "," << state[4] << "," << state[5] << "," << state[6] << std::endl;
     }
 
 	test_trajectory_file << "End of Trajectory Sequence" << std::endl;
@@ -1374,9 +1477,11 @@ int main(){
 
     // test_rk4_integration_function();
 
-    // test_forward_simulator_reversing();
+    test_forward_simulator_reversing();
 
-    test_forward_simulator_forward_motion();
+    // test_forward_simulator_forward_motion();
+
+    // test_forward_simulator_mixed_path();
 
     // test_get_alpha_for_forward_motion();
 
