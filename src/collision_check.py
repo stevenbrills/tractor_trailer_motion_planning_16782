@@ -20,7 +20,7 @@ class collision_check():
         self.MAP_RESOLUTION = 0.2
         self.map_width = 20
         self.map_height = 20
-        self.world_map = loadtxt('./src/map1.txt')
+        self.world_map = loadtxt('./map1.txt')
         assert(self.world_map.shape[0] == self.map_height/self.MAP_RESOLUTION)
         assert(self.world_map.shape[1] == self.map_width/self.MAP_RESOLUTION)
         self.tractor_coords = np.zeros((3, 1))
