@@ -4,9 +4,11 @@ import numpy as np
 from icecream import ic
 from matplotlib.animation import FuncAnimation, PillowWriter  # For gif
 from matplotlib.patches import Rectangle
+from matplotlib.patches import Polygon
 import pdb # Use this for debugging python!
 matplotlib.use('Agg')
 import argparse
+import re
 #define TRACTOR_WIDTH (2.0)
 #define L1 (5.0)
 #define L2 (5.0)
@@ -76,16 +78,13 @@ def calculateEndPoints(x,y,theta,beta):
     # ic(tractor_coords)  
     return tractor_coords, trailer_coords
     
-def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious, ax):
+def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious, ax, polygons):
 
     if not includePrevious:
         plt.clf()
     tractorData = tractor_coords[i]
     trailerData = trailer_coords[i]
     artists = []
-    # artists.append(plt.imshow(1-mapData.T, cmap = plt.cm.gray))
-    # print("tractorData: ", tractorData[0][1], tractorData[1][0])
-    # print("trailerData: ", trailerData)
     p1 = [tractorData[0][0],tractorData[0][1]]
     p2 = [tractorData[-1][0],tractorData[-1][1]]
     x_trac, y_tract = [p1[0], p2[0]], [p1[1], p2[1]]
@@ -93,25 +92,22 @@ def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious, ax):
     p1 = [trailerData[0][0],trailerData[0][1]]
     p2 = [trailerData[-1][0],trailerData[-1][1]]
     x_trailer, y_trailer = [p1[0], p2[0]], [p1[1], p2[1]]
-    plt.xlim(-2,10)
-    plt.ylim(-10,2)
+    plt.xlim(-3,10)
+    plt.ylim(-10,3)
     plt.axis('off')
     artists.append(plt.plot(x_trailer, y_trailer, color = 'blue', linewidth=8))
     artists.append(plt.plot(x_trac, y_tract, color = 'red', linewidth=8))
-    # artists.append(ax.add_patch(Rectangle((5,5),3,6,
-    #                 edgecolor='red',
-    #                 facecolor='none',
-    #                 lw=4, fill=True)))
-    # add rectangle and append to artists
-    artists.append(plt.gca().add_patch(Rectangle((1,-1),1,2,edgecolor='black',
-                    lw=8, facecolor='black',fill=True)))
+    for p in polygons:
+        patch = Polygon(p, facecolor = 'black', edgecolor = 'black', lw = 8, fill = True)
+        artists.append(plt.gca().add_patch(patch))
+
     print("i value: ", i)
     return artists
 
 def parseFiileandCreateArray():
     parser = argparse.ArgumentParser()
     parser.add_argument("--filename", help="file for trajectory", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/ouputs/TestForwardTrajectory.txt")
-    # parser.add_argument("--map_file", help="filepath with solution", type=str, default="map.txt")
+    parser.add_argument("--map_file", help="filepath with solution", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/src/map1.txt")
     parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/ouputs/trajectory_rect.gif", required=False)
     parser.add_argument("--fps", help="frames per second", type=int, default=30, required=False)
     parser.add_argument("--incPrev", help="include previous poses (1), else don't (0). Note this slows gif creation speed",
@@ -122,25 +118,28 @@ def parseFiileandCreateArray():
     assert(args.incPrev == 0 or args.incPrev == 1)  # 0 is don't include, 1 is include
 
     # map_int = []
+    polygons = []
 
-    # with open(args.map_file) as f:
-    #     lines = f.readlines()
-    #     h = lines[0].split(' ')[1]
-    #     w = lines[1].split(' ')[1]
-    #     h = int(h)
-    #     w = int(w)
-    #     # FUNCTION TO READ TRAJECTORY AND STORE (X,Y,THETA,BETA) IN ARRAY
-        
-
-    #     #CALL FUNCTION TO CONVERT THESE ARRAYS TO PIXELS
-        
-    #     map_str = lines[3:]
-    #     map_int = []
-    #     for line in map_str:
-    #         map_int.append([int(x) for x in line.split(' ') if x != '\n'])
-
-    # #convert map_int to numpy array
-    # map_int = np.array(map_int)
+    with open(args.map_file) as f:
+        lines = f.readlines()
+        for line in lines:
+            vertices = line[0].split(" ")
+            p = []
+            for v in vertices:
+                sub1 = "("
+                sub2 = ","
+                s=str(re.escape(sub1))
+                e=str(re.escape(sub2))
+                # printing result
+                x_coord=re.findall(s+"(.*)"+e,v)[0]
+                x = float(x_coord)
+                sub3 = ")"
+                sub3_esc = str(re.escape(sub3))
+                y_coord = re.findall(e+"(.*)"+sub3_esc,v)[0]
+                y = float(y_coord)
+                p.append([x,y])
+            p = np.array(p)
+            polygons.append(p)
 
     path_reversible = []
     tractor_coords = []
@@ -165,7 +164,7 @@ def parseFiileandCreateArray():
     numFrames = len(tractor_coords)
     print("numFrames: ", numFrames)
     ani = FuncAnimation(fig, createSingleFrame, repeat=False,
-        frames=numFrames, fargs=[ tractor_coords, trailer_coords, args.incPrev, ax])    
+        frames=numFrames, fargs=[ tractor_coords, trailer_coords, args.incPrev, ax, polygons])    
     ani.save(args.gifFilepath, dpi=300, writer=PillowWriter(fps=args.fps))
     print("Saved gif to: ", args.gifFilepath)
 
