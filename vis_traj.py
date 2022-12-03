@@ -5,8 +5,6 @@ from collision_check import collision_check
 from matplotlib import animation
 from matplotlib.animation import FuncAnimation, PillowWriter
 
-    
-   #load a text file in reading mode
 with open('src/TestForwardTrajectory.txt', 'r') as f:
     data = f.readlines()
     #save every 100th line into an numpy array
