@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from icecream import ic
 from matplotlib.animation import FuncAnimation, PillowWriter  # For gif
-
+from matplotlib.patches import Rectangle
 import pdb # Use this for debugging python!
 matplotlib.use('Agg')
 import argparse
@@ -21,7 +21,7 @@ BODY = 0.2
 DIAMETER = 0.5
 MAP_RESOLUTION = 0.1
 RECT_RESOLUTION = 0.1
-
+DOWNSAMPLE_FACTOR = 1000
 
 def readMap(mapfile):
     """ Input: mapfile path
@@ -76,7 +76,7 @@ def calculateEndPoints(x,y,theta,beta):
     # ic(tractor_coords)  
     return tractor_coords, trailer_coords
     
-def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious):
+def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious, ax):
 
     if not includePrevious:
         plt.clf()
@@ -95,16 +95,24 @@ def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious):
     x_trailer, y_trailer = [p1[0], p2[0]], [p1[1], p2[1]]
     plt.xlim(-2,10)
     plt.ylim(-10,2)
+    plt.axis('off')
     artists.append(plt.plot(x_trailer, y_trailer, color = 'blue', linewidth=8))
     artists.append(plt.plot(x_trac, y_tract, color = 'red', linewidth=8))
+    # artists.append(ax.add_patch(Rectangle((5,5),3,6,
+    #                 edgecolor='red',
+    #                 facecolor='none',
+    #                 lw=4, fill=True)))
+    # add rectangle and append to artists
+    artists.append(plt.gca().add_patch(Rectangle((1,-1),1,2,edgecolor='black',
+                    lw=8, facecolor='black',fill=True)))
     print("i value: ", i)
     return artists
 
 def parseFiileandCreateArray():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--filename", help="filepath with solution", type=str, default="output.txt")
-    parser.add_argument("--map_file", help="filepath with solution", type=str, default="map.txt")
-    parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="output.gif", required=False)
+    parser.add_argument("--filename", help="file for trajectory", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/ouputs/TestForwardTrajectory.txt")
+    # parser.add_argument("--map_file", help="filepath with solution", type=str, default="map.txt")
+    parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/ouputs/trajectory_rect.gif", required=False)
     parser.add_argument("--fps", help="frames per second", type=int, default=30, required=False)
     parser.add_argument("--incPrev", help="include previous poses (1), else don't (0). Note this slows gif creation speed",
                                         type=int, default=0, required=False)
@@ -113,26 +121,26 @@ def parseFiileandCreateArray():
     assert(args.gifFilepath.endswith(".gif"))  # Make sure it ends with a .gif extension
     assert(args.incPrev == 0 or args.incPrev == 1)  # 0 is don't include, 1 is include
 
-    map_int = []
+    # map_int = []
 
-    with open(args.map_file) as f:
-        lines = f.readlines()
-        h = lines[0].split(' ')[1]
-        w = lines[1].split(' ')[1]
-        h = int(h)
-        w = int(w)
-        # FUNCTION TO READ TRAJECTORY AND STORE (X,Y,THETA,BETA) IN ARRAY
+    # with open(args.map_file) as f:
+    #     lines = f.readlines()
+    #     h = lines[0].split(' ')[1]
+    #     w = lines[1].split(' ')[1]
+    #     h = int(h)
+    #     w = int(w)
+    #     # FUNCTION TO READ TRAJECTORY AND STORE (X,Y,THETA,BETA) IN ARRAY
         
 
-        #CALL FUNCTION TO CONVERT THESE ARRAYS TO PIXELS
+    #     #CALL FUNCTION TO CONVERT THESE ARRAYS TO PIXELS
         
-        map_str = lines[3:]
-        map_int = []
-        for line in map_str:
-            map_int.append([int(x) for x in line.split(' ') if x != '\n'])
+    #     map_str = lines[3:]
+    #     map_int = []
+    #     for line in map_str:
+    #         map_int.append([int(x) for x in line.split(' ') if x != '\n'])
 
-    #convert map_int to numpy array
-    map_int = np.array(map_int)
+    # #convert map_int to numpy array
+    # map_int = np.array(map_int)
 
     path_reversible = []
     tractor_coords = []
@@ -141,7 +149,7 @@ def parseFiileandCreateArray():
     with open(args.filename) as f:
         lines = f.readlines()
         for line in lines:
-            if i%100 == 0:
+            if i%DOWNSAMPLE_FACTOR == 0:
                 print("Processing line: ", i)
                 x,y,theta,beta,x2,y2,alpha = line.split(' ')
                 x = float(x)
@@ -153,11 +161,11 @@ def parseFiileandCreateArray():
                 trailer_coords.append(trailer_coords_temp)
             i+=1
     #change tractor and trailer coords in map to 1
-    fig = plt.figure()
+    fig,ax = plt.subplots()
     numFrames = len(tractor_coords)
     print("numFrames: ", numFrames)
     ani = FuncAnimation(fig, createSingleFrame, repeat=False,
-        frames=numFrames, fargs=[ tractor_coords, trailer_coords, args.incPrev])    
+        frames=numFrames, fargs=[ tractor_coords, trailer_coords, args.incPrev, ax])    
     ani.save(args.gifFilepath, dpi=300, writer=PillowWriter(fps=args.fps))
     print("Saved gif to: ", args.gifFilepath)
 
