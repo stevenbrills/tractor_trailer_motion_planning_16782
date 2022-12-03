@@ -13,8 +13,8 @@ class collision_check():
         self.BODY= 0.5
         # self.l_tractor = self.BODY + self.L1 + self.DIAMETER/2
         # self.l_trailer = self.L2 + self.DIAMETER/2
-        self.l_tractor = 4
-        self.l_trailer = 4
+        self.l_tractor = 2
+        self.l_trailer = 2
         self.TRACTOR_WIDTH = 0.5
         self.RECT_RESOLUTION = 0.05
         self.MAP_RESOLUTION = 0.2
@@ -31,8 +31,8 @@ class collision_check():
         self.trailer_rect_coords = np.zeros((3, 1))
 
     def computeTransformMatrices(self, theta, beta, x, y):
-        theta = theta*math.pi/180
-        beta = beta*math.pi/180
+        # theta = theta*math.pi/180
+        # beta = beta*math.pi/180
 
         self.trailer_transform = np.array([[math.cos(theta), -math.sin(theta), x + self.l_trailer/2*math.cos(theta)],
                                            [math.sin(theta), math.cos(theta), y + self.l_trailer/2*math.sin(theta)],
@@ -44,6 +44,10 @@ class collision_check():
     def computeCoords(self):
         steps_w = int(self.TRACTOR_WIDTH/self.RECT_RESOLUTION) + 2
         steps_l = int(self.l_tractor/self.RECT_RESOLUTION) + 2
+
+        ic(self.l_tractor)
+        ic(steps_w)
+        ic(steps_l)
         tractor_rect_coords = np.zeros((3, (steps_w)*(steps_l)))
         for i in range(steps_w):
             for j in range(steps_l):
@@ -54,7 +58,9 @@ class collision_check():
         steps_w = int(self.TRACTOR_WIDTH/self.RECT_RESOLUTION) + 2
         steps_l = int(self.l_trailer/self.RECT_RESOLUTION) + 2
         trailer_rect_coords = np.zeros((3, (steps_w)*(steps_l)))
-
+        ic(self.l_trailer)
+        ic(steps_w)
+        ic(steps_l)
         for i in range(steps_w):
             for j in range(steps_l):
                 
@@ -62,7 +68,9 @@ class collision_check():
                 trailer_rect_coords[1, i*(steps_l)+j] = -self.TRACTOR_WIDTH/2 + i*self.RECT_RESOLUTION
                 trailer_rect_coords[2, i*(steps_l)+j] = 1
                
-        
+        ic(self.tractor_transform)
+        ic(self.trailer_transform)
+
         self.tractor_coords = np.matmul(self.tractor_transform, tractor_rect_coords)
         self.trailer_coords = np.matmul(self.trailer_transform, trailer_rect_coords)
 
@@ -144,7 +152,7 @@ class collision_check():
     
 if __name__=='__main__':
     cc = collision_check()
-    cc.computeTransformMatrices(45, 45, 5,2)
+    cc.computeTransformMatrices(0.785, 0.785, 5,5)
     cc.computeCoords()
     cc.checkCollision()
     cc.visualise()
