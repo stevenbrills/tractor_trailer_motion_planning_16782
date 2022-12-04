@@ -20,7 +20,7 @@ class collision_check():
         self.MAP_RESOLUTION = 0.2
         self.map_width = 20
         self.map_height = 20
-        self.world_map = loadtxt('./map1.txt')
+        self.world_map = loadtxt('./src/map1.txt')
         assert(self.world_map.shape[0] == self.map_height/self.MAP_RESOLUTION)
         assert(self.world_map.shape[1] == self.map_width/self.MAP_RESOLUTION)
         self.tractor_coords = np.zeros((3, 1))
@@ -44,10 +44,6 @@ class collision_check():
     def computeCoords(self):
         steps_w = int(self.TRACTOR_WIDTH/self.RECT_RESOLUTION) + 2
         steps_l = int(self.l_tractor/self.RECT_RESOLUTION) + 2
-
-        ic(self.l_tractor)
-        ic(steps_w)
-        ic(steps_l)
         tractor_rect_coords = np.zeros((3, (steps_w)*(steps_l)))
         for i in range(steps_w):
             for j in range(steps_l):
@@ -58,9 +54,6 @@ class collision_check():
         steps_w = int(self.TRACTOR_WIDTH/self.RECT_RESOLUTION) + 2
         steps_l = int(self.l_trailer/self.RECT_RESOLUTION) + 2
         trailer_rect_coords = np.zeros((3, (steps_w)*(steps_l)))
-        ic(self.l_trailer)
-        ic(steps_w)
-        ic(steps_l)
         for i in range(steps_w):
             for j in range(steps_l):
                 
@@ -68,9 +61,7 @@ class collision_check():
                 trailer_rect_coords[1, i*(steps_l)+j] = -self.TRACTOR_WIDTH/2 + i*self.RECT_RESOLUTION
                 trailer_rect_coords[2, i*(steps_l)+j] = 1
                
-        ic(self.tractor_transform)
-        ic(self.trailer_transform)
-
+        
         self.tractor_coords = np.matmul(self.tractor_transform, tractor_rect_coords)
         self.trailer_coords = np.matmul(self.trailer_transform, trailer_rect_coords)
 

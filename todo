@@ -1,0 +1,9 @@
+1. Forward simulation termination criteria when lookahead circle reaches the end must be made more robust
+2. Velocity sign should be decided by the is_forward flag
+3. Decide on forward simulation pipeline
+    a. Build lookahead circle on tractor axle center
+    b. Get the intersection point with the line segments
+    c. Compute desired alpha
+4. Make a complex path following test
+5. Make a temporary visualizer
+6. Inflate lookahead radius for one iteration if intersection is not found in first check
