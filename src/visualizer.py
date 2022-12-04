@@ -23,7 +23,7 @@ BODY = 0.2
 DIAMETER = 0.5
 MAP_RESOLUTION = 0.1
 RECT_RESOLUTION = 0.1
-DOWNSAMPLE_FACTOR = 1000
+DOWNSAMPLE_FACTOR = 100
 
 def readMap(mapfile):
     """ Input: mapfile path
@@ -92,8 +92,8 @@ def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious, ax, po
     p1 = [trailerData[0][0],trailerData[0][1]]
     p2 = [trailerData[-1][0],trailerData[-1][1]]
     x_trailer, y_trailer = [p1[0], p2[0]], [p1[1], p2[1]]
-    plt.xlim(-3,10)
-    plt.ylim(-10,3)
+    plt.xlim(-10,10)
+    plt.ylim(-10,10)
     plt.axis('off')
     artists.append(plt.plot(x_trailer, y_trailer, color = 'blue', linewidth=8))
     artists.append(plt.plot(x_trac, y_tract, color = 'red', linewidth=8))
