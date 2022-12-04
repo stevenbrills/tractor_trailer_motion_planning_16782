@@ -365,7 +365,7 @@ double get_tractor_orientation(
     return (q_current[2] - (M_PI - fabs(q_current[3])));    
 }
 
-static void get_tractor_axle_center(
+void get_tractor_axle_center(
     std::vector<double>& q
 ){
 
@@ -1428,7 +1428,7 @@ static void test_forward_simulator_mixed_path(){
 
     // Save the computed trajectory into a text file
 	std::ofstream test_trajectory_file;
-	test_trajectory_file.open("../output/TestForwardTrajectory.txt", std::ios::trunc); // Creates new or replaces existing file
+	test_trajectory_file.open("../output/TestMixedTrajectory.txt", std::ios::trunc); // Creates new or replaces existing file
 	if (!test_trajectory_file.is_open()) {
 		throw std::runtime_error("Cannot open file");
 	}
@@ -1461,34 +1461,34 @@ static void test_forward_simulator_mixed_path(){
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-int main(){
+// int main(){
 
-    // test_find_intersection_point();
+//     // test_find_intersection_point();
 
-    // test_get_beta_desired();
+//     // test_get_beta_desired();
 
-    // test_get_alpha_e();
+//     // test_get_alpha_e();
 
-    // test_get_gain();
+//     // test_get_gain();
 
-    // gain_scheduler();
+//     // gain_scheduler();
 
-    // test_q_dot();
+//     // test_q_dot();
 
-    // test_rk4_integration_function();
+//     // test_rk4_integration_function();
 
-    test_forward_simulator_reversing();
+//     test_forward_simulator_reversing();
 
-    // test_forward_simulator_forward_motion();
+//     // test_forward_simulator_forward_motion();
 
-    // test_forward_simulator_mixed_path();
+//     // test_forward_simulator_mixed_path();
 
-    // test_get_alpha_for_forward_motion();
+//     // test_get_alpha_for_forward_motion();
 
-    // test_wrap_angle();
+//     // test_wrap_angle();
 
-    return 0;
+//     return 0;
 
-}
+// }
 
 //
