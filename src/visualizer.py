@@ -3,10 +3,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from icecream import ic
 from matplotlib.animation import FuncAnimation, PillowWriter  # For gif
-
+from matplotlib.patches import Rectangle
+from matplotlib.patches import Polygon
 import pdb # Use this for debugging python!
 matplotlib.use('Agg')
 import argparse
+import re
 #define TRACTOR_WIDTH (2.0)
 #define L1 (5.0)
 #define L2 (5.0)
@@ -21,7 +23,7 @@ BODY = 0.2
 DIAMETER = 0.5
 MAP_RESOLUTION = 0.1
 RECT_RESOLUTION = 0.1
-
+DOWNSAMPLE_FACTOR = 100
 
 def readMap(mapfile):
     """ Input: mapfile path
@@ -76,16 +78,13 @@ def calculateEndPoints(x,y,theta,beta):
     # ic(tractor_coords)  
     return tractor_coords, trailer_coords
     
-def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious):
+def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious, ax, polygons, piecewise_llinear_paths, L):
 
     if not includePrevious:
         plt.clf()
     tractorData = tractor_coords[i]
     trailerData = trailer_coords[i]
     artists = []
-    # artists.append(plt.imshow(1-mapData.T, cmap = plt.cm.gray))
-    # print("tractorData: ", tractorData[0][1], tractorData[1][0])
-    # print("trailerData: ", trailerData)
     p1 = [tractorData[0][0],tractorData[0][1]]
     p2 = [tractorData[-1][0],tractorData[-1][1]]
     x_trac, y_tract = [p1[0], p2[0]], [p1[1], p2[1]]
@@ -93,18 +92,29 @@ def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious):
     p1 = [trailerData[0][0],trailerData[0][1]]
     p2 = [trailerData[-1][0],trailerData[-1][1]]
     x_trailer, y_trailer = [p1[0], p2[0]], [p1[1], p2[1]]
-    plt.xlim(-2,10)
-    plt.ylim(-10,2)
+    plt.xlim(-10,10)
+    plt.ylim(-10,10)
+    plt.axis('off')
     artists.append(plt.plot(x_trailer, y_trailer, color = 'blue', linewidth=8))
     artists.append(plt.plot(x_trac, y_tract, color = 'red', linewidth=8))
+    for p in polygons:
+        patch = Polygon(p, facecolor = 'black', edgecolor = 'black', lw = 8, fill = True)
+        artists.append(plt.gca().add_patch(patch))
+    for k in range(1,len(piecewise_llinear_paths)):
+        p1, p2 = [piecewise_llinear_paths[k-1][0], piecewise_llinear_paths[k][0]], [piecewise_llinear_paths[k-1][1], piecewise_llinear_paths[k][1]]
+        if k ==1:
+            artists.append(plt.plot(p1, p2, color = 'green', linewidth=2, linestyle='dashed', label = 'Piecewise Linear Path'))
+        else:
+            artists.append(plt.plot(p1, p2, color = 'green', linewidth=2, linestyle='dashed'))
+    artists.append(plt.legend(loc='upper right'))   
     print("i value: ", i)
     return artists
 
 def parseFiileandCreateArray():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--filename", help="filepath with solution", type=str, default="output.txt")
-    parser.add_argument("--map_file", help="filepath with solution", type=str, default="map.txt")
-    parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="output.gif", required=False)
+    parser.add_argument("--filename", help="file for trajectory", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/ouputs/TestForwardTrajectory.txt")
+    parser.add_argument("--map_file", help="filepath with solution", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/src/map1.txt")
+    parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/ouputs/trajectory_rect.gif", required=False)
     parser.add_argument("--fps", help="frames per second", type=int, default=30, required=False)
     parser.add_argument("--incPrev", help="include previous poses (1), else don't (0). Note this slows gif creation speed",
                                         type=int, default=0, required=False)
@@ -113,26 +123,31 @@ def parseFiileandCreateArray():
     assert(args.gifFilepath.endswith(".gif"))  # Make sure it ends with a .gif extension
     assert(args.incPrev == 0 or args.incPrev == 1)  # 0 is don't include, 1 is include
 
-    map_int = []
-
+    # map_int = []
+    polygons = []
+    lin_num = 0
     with open(args.map_file) as f:
         lines = f.readlines()
-        h = lines[0].split(' ')[1]
-        w = lines[1].split(' ')[1]
-        h = int(h)
-        w = int(w)
-        # FUNCTION TO READ TRAJECTORY AND STORE (X,Y,THETA,BETA) IN ARRAY
-        
-
-        #CALL FUNCTION TO CONVERT THESE ARRAYS TO PIXELS
-        
-        map_str = lines[3:]
-        map_int = []
-        for line in map_str:
-            map_int.append([int(x) for x in line.split(' ') if x != '\n'])
-
-    #convert map_int to numpy array
-    map_int = np.array(map_int)
+        for line in lines:
+            if lin_num == 0:
+                vertices = line.split(" ")
+                p = []
+                for v in vertices:
+                    sub1 = "("
+                    sub2 = ","
+                    s=str(re.escape(sub1))
+                    e=str(re.escape(sub2))
+                    # printing result
+                    x_coord=re.findall(s+"(.*)"+e,v)[0]
+                    x = float(x_coord)
+                    sub3 = ")"
+                    sub3_esc = str(re.escape(sub3))
+                    y_coord = re.findall(e+"(.*)"+sub3_esc,v)[0]
+                    y = float(y_coord)
+                    p.append([x,y])
+                p = np.array(p)
+                polygons.append(p)
+                lin_num += 1
 
     path_reversible = []
     tractor_coords = []
@@ -141,7 +156,10 @@ def parseFiileandCreateArray():
     with open(args.filename) as f:
         lines = f.readlines()
         for line in lines:
-            if i%100 == 0:
+            if(i<9):
+                i+=1
+                continue
+            elif i%DOWNSAMPLE_FACTOR == 0:
                 print("Processing line: ", i)
                 x,y,theta,beta,x2,y2,alpha = line.split(' ')
                 x = float(x)
@@ -153,11 +171,26 @@ def parseFiileandCreateArray():
                 trailer_coords.append(trailer_coords_temp)
             i+=1
     #change tractor and trailer coords in map to 1
-    fig = plt.figure()
+    i = 0
+    points = []
+    piecewise_llinear_paths = []
+    with open(args.filename) as f:
+        lines = f.readlines()
+        for line in lines:
+            i+=1
+            if i<5:
+                continue
+            x,y = float(line.split(' ')[0]), float(line.split(' ')[1])
+            piecewise_llinear_paths.append([x,y])
+            if i>8:
+                break
+    print(piecewise_llinear_paths)
+    fig,ax = plt.subplots()
     numFrames = len(tractor_coords)
     print("numFrames: ", numFrames)
+    L = plt.legend(loc='upper right', shadow=True, fontsize='large')
     ani = FuncAnimation(fig, createSingleFrame, repeat=False,
-        frames=numFrames, fargs=[ tractor_coords, trailer_coords, args.incPrev])    
+        frames=numFrames, fargs=[ tractor_coords, trailer_coords, args.incPrev, ax, polygons, piecewise_llinear_paths, L])    
     ani.save(args.gifFilepath, dpi=300, writer=PillowWriter(fps=args.fps))
     print("Saved gif to: ", args.gifFilepath)
 
