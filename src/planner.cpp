@@ -80,11 +80,11 @@ std::pair<Node*, bool> find_nearest_neighbor(
     std::pair<Node*, bool> result;
 
     Node* nearest_node;
-
+    std::cout << "Lowest score: " << lowest_score << std::endl;
     for(Node* node : tree){
-
-        if(get_euclidean_distance(control_sample, (*node).control_input) < lowest_score){
-
+        std::cout<<"Euclidian distance: "<<get_euclidean_distance(node->control_input, control_sample)<<std::endl;
+        if(get_euclidean_distance(control_sample, (*node).control_input) <= lowest_score){
+            std::cout<<"Inside if"<<std::endl;
             if(get_direction(node, control_sample)){
 
                 std::vector<double> tractor_axle_center(2,0);
@@ -97,6 +97,7 @@ std::pair<Node*, bool> find_nearest_neighbor(
 
             }
             else{
+                std::cout<<"Inside else"<<std::endl;
                 std::vector<double> trailer_axle_center(2,0);
                 trailer_axle_center[0] = (*node).q[0];
                 trailer_axle_center[1] = (*node).q[1];
@@ -318,16 +319,16 @@ static void test_find_nearest_neighbor(){
     node2.control_input[1] = 5;
 
     test_tree.insert(&node1);
-    test_tree.insert(&node2);
+    // test_tree.insert(&node2);
 
     auto result1 = find_nearest_neighbor(test_tree, control_sample);
-    auto result2 = find_nearest_neighbor(test_tree, control_sample);
+    // auto result2 = find_nearest_neighbor(test_tree, control_sample);
 
     std::cout << "Node1 test X: " << result1.first->q[0] << std::endl;
     std::cout << "Node1 test Y: " << result1.first->q[1] << std::endl;
     std::cout << "--------------------" << std::endl;
-    std::cout << "Node2 test X: " << result2.first->q[0] << std::endl;
-    std::cout << "Node2 test Y: " << result2.first->q[1] << std::endl;
+    // std::cout << "Node2 test X: " << result2.first->q[0] << std::endl;
+    // std::cout << "Node2 test Y: " << result2.first->q[1] << std::endl;
 
 
 
