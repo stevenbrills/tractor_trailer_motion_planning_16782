@@ -730,7 +730,10 @@ std::vector<std::vector<double>> segment_simulator(
         std::cout << "Simulation cut off since no intersection point found" << std::endl;
         // std::cout << "Terminated intersection point is"
     }
-
+    // std::cout<<"Trajectory size: "<<trajectory.size()<<std::endl;
+    if(trajectory.size()==0){
+        std::cout << "Trajectory size is zero!" << std::endl;
+    }
     return trajectory;
 }
 
