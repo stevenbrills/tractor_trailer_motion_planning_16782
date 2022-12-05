@@ -188,7 +188,7 @@ static bool find_intersection_point(
 
         }
 
-        std::cout << "No real roots" << std::endl;
+        // std::cout << "No real roots" << std::endl;
         return false;
 
     }
@@ -235,17 +235,17 @@ double get_beta_desired(
 
     double beta_d = (theta_e/fabs(theta_e))*(beta_1+beta_2);
 
-    std::cout << "Projected distance on axle: " << projected_distance_on_axle << std::endl;
+    // std::cout << "Projected distance on axle: " << projected_distance_on_axle << std::endl;
 
-    std::cout << "Projected distance on axle normal: " << projected_distance_on_axle_normal << std::endl;
+    // std::cout << "Projected distance on axle normal: " << projected_distance_on_axle_normal << std::endl;
 
-    std::cout << "atan2 value: " << theta_e << std::endl;
+    // std::cout << "atan2 value: " << theta_e << std::endl;
 
-    std::cout << "Turning radius value is: " << turning_circle_radius << std::endl;
+    // std::cout << "Turning radius value is: " << turning_circle_radius << std::endl;
     
-    std::cout << "Beta 1 componenet: " << beta_1 << std::endl;
+    // std::cout << "Beta 1 componenet: " << beta_1 << std::endl;
 
-    std::cout << "Beta 2 componenet: " << beta_2 << std::endl;
+    // std::cout << "Beta 2 componenet: " << beta_2 << std::endl;
 
     // Theta_e is the heading error as decribed by the geometry of the pure-pursuit controller
     // with respect to the center-line of the trailer. When the trailer is facing upwards and
@@ -264,11 +264,11 @@ double get_beta_desired(
 
     // double theta_e = asin(projected_distance_on_axle/backward_lookahead_radius);
 
-    std::cout << "Calculated theta value is: " << theta_e << std::endl;
+    // std::cout << "Calculated theta value is: " << theta_e << std::endl;
 
     // double beta_d = atan(((trailer_wheelbase*2*sin(theta_e))/backward_lookahead_radius));
 
-    std::cout << "Beta desired is: " << beta_d << std::endl;
+    // std::cout << "Beta desired is: " << beta_d << std::endl;
 
     return beta_d;
 
@@ -666,9 +666,9 @@ std::vector<std::vector<double>> segment_simulator(
             else{
                 backward_lookahead_radius = backward_lookahead_radius*1.05;
                 std::cout << "Inflated backward lookahead radius: " << backward_lookahead_radius << std::endl;
-                std::cout << "Current trailer X: " << q_current[0] << "Current Trailer Y: " << q_current[1] << std::endl;
+                // std::cout << "Current trailer X: " << q_current[0] << "Current Trailer Y: " << q_current[1] << std::endl;
                 found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
-                std::cout << "Dist to segment start: " << sqrt(pow(segment[0][0] - q_current[0],2)+pow(segment[0][1] - q_current[1],2)) << std::endl;
+                // std::cout << "Dist to segment start: " << sqrt(pow(segment[0][0] - q_current[0],2)+pow(segment[0][1] - q_current[1],2)) << std::endl;
                 backward_lookahead_radius = backward_lookahead_radius/1.05;
             }
         }
@@ -801,10 +801,10 @@ std::vector<std::vector<double>> forward_simulator(
         y.push_back(final_trajectory[i][1]);
     }
 
-    plt::plot(x, y, "k-");
+    // plt::plot(x, y, "k-");
 
     // show plots
-    plt::show();
+    // plt::show();
 
     return final_trajectory;
 
