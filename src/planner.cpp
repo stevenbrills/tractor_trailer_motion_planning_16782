@@ -7,12 +7,12 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
-
-#define SAMPLING_TRIALS 100
+#include "matplotlibcpp.h"
+#define SAMPLING_TRIALS 500
 double map_side = 105;
 // double map_y = 105;
 
-
+namespace plt = matplotlibcpp;
 static void sample_control_point(
     std::vector<double>& random_sample
 ){
@@ -140,13 +140,13 @@ std::vector<std::vector<double>> planner(
     InitialNode->start = true;
 
     std::vector<std::vector<double>> expansion_segment(2,std::vector<double>(2,0));
-
+    std::vector<double> x,y;
     // Store tree in unordered set
     std::unordered_set<Node*, NodePtrHasher, NodePtrComparator> tree;
     tree.insert(InitialNode);
     // Loop for sampling_trials number of times
     for(int i=0; i<sampling_trials; i++){
-
+        std::cout<<"sampling trial::::::::::::::"<<i<<std::endl;
         std::vector<double> random_control_sample(2,0);
         sample_control_point(random_control_sample);
         
@@ -168,7 +168,10 @@ std::vector<std::vector<double>> planner(
         new_node->is_forward = result_pair.second;
 
         tree.insert(new_node);
+        x.push_back(new_node->q[0]);
+        y.push_back(new_node->q[1]);
         std::cout<<"Number of nodes in the tree: "<<tree.size()<<std::endl;
+        
     }
     std::cout<<"Tree size: "<<tree.size()<<std::endl;
 
@@ -219,7 +222,10 @@ std::vector<std::vector<double>> planner(
     }
 
 	// planned_trajectory << "End of Trajectory Sequence" << std::endl;
+    plt::scatter(x, y, 100);
 
+    // show plots
+    plt::show();
     return piecewise_path;
 }
 
