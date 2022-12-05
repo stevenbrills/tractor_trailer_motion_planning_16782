@@ -48,7 +48,7 @@ bool get_direction(
     float c = node->q[1] - (m*node->q[0]);
 
     float y = m*control_sample[0] + c;
-
+    std::cout << "Slope of the line is: " << m <<std::endl;
     std::cout << "Computed value of y: " << y << std::endl;
 
     if(y>=control_sample[1]){
@@ -81,7 +81,7 @@ std::pair<Node*, bool> find_nearest_neighbor(
 
     Node* nearest_node;
 
-    for(Node* node : tree){
+    for(auto& node : tree){
 
         if(get_euclidean_distance(control_sample, (*node).control_input) < lowest_score){
 
@@ -152,7 +152,7 @@ std::vector<std::vector<double>> planner(
         expansion_segment[1] = random_control_sample;
 
         // Connect sample to control point of nearest neighbor
-        // Expand the state/node
+        // Expand the state/nodetree
         // For this test implementation, forget about obstacle and collision checking
         auto trajectory = segment_simulator((*result_pair.first).q, expansion_segment, result_pair.second);
 
@@ -175,7 +175,6 @@ std::vector<std::vector<double>> planner(
         piecewise_path.push_back((*random_node).control_input);
         parent_node = (*parent_node).parent_node;
     }
-
     piecewise_path.push_back((*parent_node).control_input);
 
     std::reverse(piecewise_path.begin(),piecewise_path.end());
@@ -292,6 +291,38 @@ static void test_sample_control_point(){
     std::cout << "-------------------------------------------------------------" << std::endl;
 }
 
+static void test_get_euclidean_distance(){
+    std::vector<double> sample1(2,0);
+    std::vector<double> sample2(2,0);
+
+    sample2[0] = 1;
+    sample2[1] = 0;
+    std::cout << "---------------------------------" << std::endl;
+    std::cout << "Sample1 X: " << sample1[0] << "     Sample1 Y" << sample1[1] << std::endl;
+    std::cout << "Sample2 X: " << sample2[0] << "     Sample2 Y" << sample2[1] << std::endl;
+    std::cout << "Distance between the samples: " << get_euclidean_distance(sample1, sample2) << std::endl; // Should be 1
+    std::cout << "---------------------------------" << std::endl;
+
+
+    sample2[0] = 1;
+    sample2[1] = 1;
+    std::cout << "---------------------------------" << std::endl;
+    std::cout << "Sample1 X: " << sample1[0] << "     Sample1 Y" << sample1[1] << std::endl;
+    std::cout << "Sample2 X: " << sample2[0] << "     Sample2 Y" << sample2[1] << std::endl;
+    std::cout << "Distance between the samples: " << get_euclidean_distance(sample1, sample2) << std::endl; // Should be 1.414
+    std::cout << "---------------------------------" << std::endl;
+
+
+    sample2[0] = 3;
+    sample2[1] = 4;
+    std::cout << "---------------------------------" << std::endl;
+    std::cout << "Sample1 X: " << sample1[0] << "     Sample1 Y" << sample1[1] << std::endl;
+    std::cout << "Sample2 X: " << sample2[0] << "     Sample2 Y" << sample2[1] << std::endl;
+    std::cout << "Distance between the samples: " << get_euclidean_distance(sample1, sample2) << std::endl; // Should be 5
+    std::cout << "---------------------------------" << std::endl;
+
+}
+
 static void test_find_nearest_neighbor(){
 
     // Make a fake tree for testing
@@ -312,7 +343,7 @@ static void test_find_nearest_neighbor(){
     Node node2;
     node2.q[0] = 2;
     node2.q[1] = 4;
-    node2.q[2] = M_PI_2;
+    node2.q[2] = M_PI_4;
     node2.q[3] = M_PI;
     node2.control_input[0] = 5;
     node2.control_input[1] = 5;
@@ -330,14 +361,6 @@ static void test_find_nearest_neighbor(){
     std::cout << "Node2 test Y: " << result2.first->q[1] << std::endl;
 
 
-
-
-
-
-
-
-
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -348,29 +371,26 @@ int main(){
 
     std::vector<double> q_init(6,0);
     q_init[0] = 0.5;
-    q_init[0] = 0.5;
-    q_init[0] = M_PI_2;
-    q_init[0] = M_PI;
+    q_init[1] = 0.5;
+    q_init[2] = M_PI_2;
+    q_init[3] = M_PI;
     get_tractor_axle_center(q_init);
 
     std::vector<double> q_goal(6,0);
-    q_init[0] = 0.5;
-    q_init[0] = 0.5;
-    q_init[0] = M_PI_2;
-    q_init[0] = M_PI;
+    q_goal[0] = 0.5;
+    q_goal[1] = 0.5;
+    q_goal[2] = M_PI_2;
+    q_goal[3] = M_PI;
     get_tractor_axle_center(q_goal);
 
     // test_get_direction_fucntion();
     // test_sample_control_point();
-    test_find_nearest_neighbor();
+    // test_find_nearest_neighbor();
+    // test_get_euclidean_distance();
 
+    std::vector<std::vector<double>> final_plan_rrt;
 
-
-
-
-
-
-
+    final_plan_rrt = planner(q_init, q_goal);
 
     return 0;
 
