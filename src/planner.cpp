@@ -7,12 +7,21 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+<<<<<<< HEAD
 
 #define SAMPLING_TRIALS 100
 double map_side = 105;
 // double map_y = 105;
 
 
+=======
+#include "matplotlibcpp.h"
+#define SAMPLING_TRIALS 500
+double map_side = 105;
+// double map_y = 105;
+
+namespace plt = matplotlibcpp;
+>>>>>>> planner_dev
 static void sample_control_point(
     std::vector<double>& random_sample
 ){
@@ -49,7 +58,11 @@ bool get_direction(
     float c = node->q[1] - (m*node->q[0]);
 
     float y = m*control_sample[0] + c;
+<<<<<<< HEAD
 
+=======
+    std::cout << "Slope of the line is: " << m <<std::endl;
+>>>>>>> planner_dev
     std::cout << "Computed value of y: " << y << std::endl;
     std::cout << "Control sample y: " << control_sample[0] << " "<< control_sample[1] << std::endl;
     if(std::isnan(y)){
@@ -86,7 +99,11 @@ std::pair<Node*, bool> find_nearest_neighbor(
 
     Node* nearest_node;
 
+<<<<<<< HEAD
     for(Node* node : tree){
+=======
+    for(auto& node : tree){
+>>>>>>> planner_dev
 
         if(get_euclidean_distance(control_sample, (*node).control_input) <= lowest_score){
 
@@ -140,13 +157,21 @@ std::vector<std::vector<double>> planner(
     InitialNode->start = true;
 
     std::vector<std::vector<double>> expansion_segment(2,std::vector<double>(2,0));
+<<<<<<< HEAD
 
+=======
+    std::vector<double> x,y;
+>>>>>>> planner_dev
     // Store tree in unordered set
     std::unordered_set<Node*, NodePtrHasher, NodePtrComparator> tree;
     tree.insert(InitialNode);
     // Loop for sampling_trials number of times
     for(int i=0; i<sampling_trials; i++){
+<<<<<<< HEAD
 
+=======
+        std::cout<<"sampling trial::::::::::::::"<<i<<std::endl;
+>>>>>>> planner_dev
         std::vector<double> random_control_sample(2,0);
         sample_control_point(random_control_sample);
         
@@ -157,7 +182,11 @@ std::vector<std::vector<double>> planner(
         expansion_segment[1] = random_control_sample;
 
         // Connect sample to control point of nearest neighbor
+<<<<<<< HEAD
         // Expand the state/node
+=======
+        // Expand the state/nodetree
+>>>>>>> planner_dev
         // For this test implementation, forget about obstacle and collision checking
         auto trajectory = segment_simulator((*result_pair.first).q, expansion_segment, result_pair.second);
         if(trajectory.size() == 0) continue;
@@ -168,7 +197,14 @@ std::vector<std::vector<double>> planner(
         new_node->is_forward = result_pair.second;
 
         tree.insert(new_node);
+<<<<<<< HEAD
         std::cout<<"Number of nodes in the tree: "<<tree.size()<<std::endl;
+=======
+        x.push_back(new_node->q[0]);
+        y.push_back(new_node->q[1]);
+        std::cout<<"Number of nodes in the tree: "<<tree.size()<<std::endl;
+        
+>>>>>>> planner_dev
     }
     std::cout<<"Tree size: "<<tree.size()<<std::endl;
 
@@ -182,7 +218,10 @@ std::vector<std::vector<double>> planner(
         piecewise_path.push_back((*random_node).control_input);
         parent_node = (*parent_node).parent_node;
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> planner_dev
     piecewise_path.push_back((*parent_node).control_input);
 
     std::reverse(piecewise_path.begin(),piecewise_path.end());
@@ -220,7 +259,14 @@ std::vector<std::vector<double>> planner(
     }
 
 	// planned_trajectory << "End of Trajectory Sequence" << std::endl;
+<<<<<<< HEAD
 
+=======
+    plt::scatter(x, y, 100);
+
+    // show plots
+    plt::show();
+>>>>>>> planner_dev
     return piecewise_path;
 }
 
@@ -299,6 +345,41 @@ static void test_sample_control_point(){
     std::cout << "-------------------------------------------------------------" << std::endl;
 }
 
+<<<<<<< HEAD
+=======
+static void test_get_euclidean_distance(){
+    std::vector<double> sample1(2,0);
+    std::vector<double> sample2(2,0);
+
+    sample2[0] = 1;
+    sample2[1] = 0;
+    std::cout << "---------------------------------" << std::endl;
+    std::cout << "Sample1 X: " << sample1[0] << "     Sample1 Y" << sample1[1] << std::endl;
+    std::cout << "Sample2 X: " << sample2[0] << "     Sample2 Y" << sample2[1] << std::endl;
+    std::cout << "Distance between the samples: " << get_euclidean_distance(sample1, sample2) << std::endl; // Should be 1
+    std::cout << "---------------------------------" << std::endl;
+
+
+    sample2[0] = 1;
+    sample2[1] = 1;
+    std::cout << "---------------------------------" << std::endl;
+    std::cout << "Sample1 X: " << sample1[0] << "     Sample1 Y" << sample1[1] << std::endl;
+    std::cout << "Sample2 X: " << sample2[0] << "     Sample2 Y" << sample2[1] << std::endl;
+    std::cout << "Distance between the samples: " << get_euclidean_distance(sample1, sample2) << std::endl; // Should be 1.414
+    std::cout << "---------------------------------" << std::endl;
+
+
+    sample2[0] = 3;
+    sample2[1] = 4;
+    std::cout << "---------------------------------" << std::endl;
+    std::cout << "Sample1 X: " << sample1[0] << "     Sample1 Y" << sample1[1] << std::endl;
+    std::cout << "Sample2 X: " << sample2[0] << "     Sample2 Y" << sample2[1] << std::endl;
+    std::cout << "Distance between the samples: " << get_euclidean_distance(sample1, sample2) << std::endl; // Should be 5
+    std::cout << "---------------------------------" << std::endl;
+
+}
+
+>>>>>>> planner_dev
 static void test_find_nearest_neighbor(){
 
     // Make a fake tree for testing
@@ -319,7 +400,11 @@ static void test_find_nearest_neighbor(){
     Node node2;
     node2.q[0] = 2;
     node2.q[1] = 4;
+<<<<<<< HEAD
     node2.q[2] = M_PI_2;
+=======
+    node2.q[2] = M_PI_4;
+>>>>>>> planner_dev
     node2.q[3] = M_PI;
     node2.control_input[0] = 5;
     node2.control_input[1] = 5;
@@ -337,6 +422,7 @@ static void test_find_nearest_neighbor(){
     std::cout << "Node2 test Y: " << result2.first->q[1] << std::endl;
 
 
+<<<<<<< HEAD
 
 
 
@@ -345,6 +431,8 @@ static void test_find_nearest_neighbor(){
 
 
 
+=======
+>>>>>>> planner_dev
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,9 +450,15 @@ int main(){
 
     std::vector<double> q_goal(6,0);
     q_goal[0] = 10.0;
+<<<<<<< HEAD
     q_goal[1] = 10.0;
     q_goal[2] = M_PI_2;
     q_goal[3] = M_PI;
+=======
+    q_goal[0] = 10.0;
+    q_goal[0] = M_PI_2;
+    q_goal[0] = M_PI;
+>>>>>>> planner_dev
     get_tractor_axle_center(q_goal);
 
     // test_get_direction_fucntion();

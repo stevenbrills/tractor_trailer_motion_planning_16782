@@ -1,4 +1,0 @@
-/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/build/CMakeFiles/rebuild_cache.dir
-/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/build/CMakeFiles/edit_cache.dir
-/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/build/CMakeFiles/controller_new.dir
-/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/build/CMakeFiles/forward_simulator.dir

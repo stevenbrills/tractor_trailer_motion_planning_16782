@@ -129,7 +129,7 @@ double get_gain(
     const double& velocity
 ){
 
-    std::cout << "In get gain function" << std::endl;
+    // std::cout << "In get gain function" << std::endl;
 
     const size_t state_dim = 1;
     const size_t control_dim = 1;
@@ -144,8 +144,8 @@ double get_gain(
     Q(0,0) = 10;
     R(0,0) = 10;
 
-    std::cout << "A mat value: " << A(0,0) << std::endl;
-    std::cout << "B mat value: " << B(0,0) << std::endl;
+    // std::cout << "A mat value: " << A(0,0) << std::endl;
+    // std::cout << "B mat value: " << B(0,0) << std::endl;
 
     ct::optcon::LQR<state_dim, control_dim> lqrSolver;
     ct::core::FeedbackMatrix<state_dim, control_dim> K;
@@ -180,7 +180,7 @@ void gain_scheduler(
     // double R = 0.0;
     // double Q = 10.0;
 
-    std::cout << "In the gain scheduler function" << std::endl;
+    // std::cout << "In the gain scheduler function" << std::endl;
 
     // Loop through values of alpha_e
     // Calculate 
@@ -200,16 +200,16 @@ void gain_scheduler(
     double alpha_e_min = -1*alpha_e_max;
     double beta_e_min = -1*beta_e_max;
 
-    std::cout << "Maximum value of alpha_e: " << alpha_e_max << std::endl;
-    std::cout << "Maximum value of beta_e: " << beta_e_max << std::endl;
-    std::cout << "A mat value: " << get_state_matrix(alpha_e_max, beta_e_max, velocity) << std::endl;
-    std::cout << "B mat value: " << get_input_matrix(alpha_e_max, beta_e_max, velocity) << std::endl;
+    // std::cout << "Maximum value of alpha_e: " << alpha_e_max << std::endl;
+    // std::cout << "Maximum value of beta_e: " << beta_e_max << std::endl;
+    // std::cout << "A mat value: " << get_state_matrix(alpha_e_max, beta_e_max, velocity) << std::endl;
+    // std::cout << "B mat value: " << get_input_matrix(alpha_e_max, beta_e_max, velocity) << std::endl;
 
 
-    std::cout << "Minimum value of alpha_e: " << alpha_e_min << std::endl;
-    std::cout << "Minimum value of beta_e: " << beta_e_min << std::endl;
-    std::cout << "A mat value: " << get_state_matrix(alpha_e_min, beta_e_min, velocity) << std::endl;
-    std::cout << "B mat value: " << get_input_matrix(alpha_e_min, beta_e_min, velocity) << std::endl;
+    // std::cout << "Minimum value of alpha_e: " << alpha_e_min << std::endl;
+    // std::cout << "Minimum value of beta_e: " << beta_e_min << std::endl;
+    // std::cout << "A mat value: " << get_state_matrix(alpha_e_min, beta_e_min, velocity) << std::endl;
+    // std::cout << "B mat value: " << get_input_matrix(alpha_e_min, beta_e_min, velocity) << std::endl;
 
 
 
@@ -372,7 +372,7 @@ void beta_dot_tester(
     std::vector<double> alphas(n),betas(n);
     std::vector<double> beta_dots(n);
 
-    std::cout << "In the gain scheduler function" << std::endl;
+    // std::cout << "In the gain scheduler function" << std::endl;
 
     // Constants
     float beta_prop_gain = 0.3;
@@ -420,9 +420,9 @@ void beta_dot_tester(
     double test_beta_e = get_beta_e_given_alpha(test_constant_alpha);
 
 
-    std::cout << "Beta_e for the constant alpha is: " << test_beta_e << std::endl;
+    // std::cout << "Beta_e for the constant alpha is: " << test_beta_e << std::endl;
 
-    std::cout << "Beta dot for beta_e and test alpha is: " << get_beta_dot(test_constant_alpha, test_beta_e, velocity) << std::endl;
+    // std::cout << "Beta dot for beta_e and test alpha is: " << get_beta_dot(test_constant_alpha, test_beta_e, velocity) << std::endl;
 
     
     plt::plot(x, y, "k-");

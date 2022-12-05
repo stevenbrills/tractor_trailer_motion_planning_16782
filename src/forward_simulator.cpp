@@ -188,7 +188,7 @@ static bool find_intersection_point(
 
         }
 
-        std::cout << "No real roots" << std::endl;
+        // std::cout << "No real roots" << std::endl;
         return false;
 
     }
@@ -235,17 +235,17 @@ double get_beta_desired(
 
     double beta_d = (theta_e/fabs(theta_e))*(beta_1+beta_2);
 
-    std::cout << "Projected distance on axle: " << projected_distance_on_axle << std::endl;
+    // std::cout << "Projected distance on axle: " << projected_distance_on_axle << std::endl;
 
-    std::cout << "Projected distance on axle normal: " << projected_distance_on_axle_normal << std::endl;
+    // std::cout << "Projected distance on axle normal: " << projected_distance_on_axle_normal << std::endl;
 
-    std::cout << "atan2 value: " << theta_e << std::endl;
+    // std::cout << "atan2 value: " << theta_e << std::endl;
 
-    std::cout << "Turning radius value is: " << turning_circle_radius << std::endl;
+    // std::cout << "Turning radius value is: " << turning_circle_radius << std::endl;
     
-    std::cout << "Beta 1 componenet: " << beta_1 << std::endl;
+    // std::cout << "Beta 1 componenet: " << beta_1 << std::endl;
 
-    std::cout << "Beta 2 componenet: " << beta_2 << std::endl;
+    // std::cout << "Beta 2 componenet: " << beta_2 << std::endl;
 
     // Theta_e is the heading error as decribed by the geometry of the pure-pursuit controller
     // with respect to the center-line of the trailer. When the trailer is facing upwards and
@@ -264,11 +264,11 @@ double get_beta_desired(
 
     // double theta_e = asin(projected_distance_on_axle/backward_lookahead_radius);
 
-    std::cout << "Calculated theta value is: " << theta_e << std::endl;
+    // std::cout << "Calculated theta value is: " << theta_e << std::endl;
 
     // double beta_d = atan(((trailer_wheelbase*2*sin(theta_e))/backward_lookahead_radius));
 
-    std::cout << "Beta desired is: " << beta_d << std::endl;
+    // std::cout << "Beta desired is: " << beta_d << std::endl;
 
     return beta_d;
 
@@ -365,7 +365,7 @@ double get_tractor_orientation(
     return (q_current[2] - (M_PI - fabs(q_current[3])));    
 }
 
-static void get_tractor_axle_center(
+void get_tractor_axle_center(
     std::vector<double>& q
 ){
 
@@ -666,9 +666,9 @@ std::vector<std::vector<double>> segment_simulator(
             else{
                 backward_lookahead_radius = backward_lookahead_radius*1.05;
                 std::cout << "Inflated backward lookahead radius: " << backward_lookahead_radius << std::endl;
-                std::cout << "Current trailer X: " << q_current[0] << "Current Trailer Y: " << q_current[1] << std::endl;
+                // std::cout << "Current trailer X: " << q_current[0] << "Current Trailer Y: " << q_current[1] << std::endl;
                 found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
-                std::cout << "Dist to segment start: " << sqrt(pow(segment[0][0] - q_current[0],2)+pow(segment[0][1] - q_current[1],2)) << std::endl;
+                // std::cout << "Dist to segment start: " << sqrt(pow(segment[0][0] - q_current[0],2)+pow(segment[0][1] - q_current[1],2)) << std::endl;
                 backward_lookahead_radius = backward_lookahead_radius/1.05;
             }
         }
@@ -722,7 +722,10 @@ std::vector<std::vector<double>> segment_simulator(
         trajectory.push_back(q_next);
 
         while_loop_counter++;
-
+        if(while_loop_counter>130000){
+            std::cout << "While loop counter exceeded 1000!" << std::endl;
+            break;
+        }
     }
 
     std::cout << "Simulation complete!" << std::endl;
@@ -730,7 +733,10 @@ std::vector<std::vector<double>> segment_simulator(
         std::cout << "Simulation cut off since no intersection point found" << std::endl;
         // std::cout << "Terminated intersection point is"
     }
-
+    // std::cout<<"Trajectory size: "<<trajectory.size()<<std::endl;
+    if(trajectory.size()==0){
+        std::cout << "Trajectory size is zero!" << std::endl;
+    }
     return trajectory;
 }
 
@@ -798,10 +804,10 @@ std::vector<std::vector<double>> forward_simulator(
         y.push_back(final_trajectory[i][1]);
     }
 
-    plt::plot(x, y, "k-");
+    // plt::plot(x, y, "k-");
 
     // show plots
-    plt::show();
+    // plt::show();
 
     return final_trajectory;
 
@@ -1428,7 +1434,7 @@ static void test_forward_simulator_mixed_path(){
 
     // Save the computed trajectory into a text file
 	std::ofstream test_trajectory_file;
-	test_trajectory_file.open("../output/TestForwardTrajectory.txt", std::ios::trunc); // Creates new or replaces existing file
+	test_trajectory_file.open("../output/TestMixedTrajectory.txt", std::ios::trunc); // Creates new or replaces existing file
 	if (!test_trajectory_file.is_open()) {
 		throw std::runtime_error("Cannot open file");
 	}
@@ -1461,34 +1467,34 @@ static void test_forward_simulator_mixed_path(){
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-int main(){
+// int main(){
 
-    // test_find_intersection_point();
+//     // test_find_intersection_point();
 
-    // test_get_beta_desired();
+//     // test_get_beta_desired();
 
-    // test_get_alpha_e();
+//     // test_get_alpha_e();
 
-    // test_get_gain();
+//     // test_get_gain();
 
-    // gain_scheduler();
+//     // gain_scheduler();
 
-    // test_q_dot();
+//     // test_q_dot();
 
-    // test_rk4_integration_function();
+//     // test_rk4_integration_function();
 
-    test_forward_simulator_reversing();
+//     test_forward_simulator_reversing();
 
-    // test_forward_simulator_forward_motion();
+//     // test_forward_simulator_forward_motion();
 
-    // test_forward_simulator_mixed_path();
+//     // test_forward_simulator_mixed_path();
 
-    // test_get_alpha_for_forward_motion();
+//     // test_get_alpha_for_forward_motion();
 
-    // test_wrap_angle();
+//     // test_wrap_angle();
 
-    return 0;
+//     return 0;
 
-}
+// }
 
 //

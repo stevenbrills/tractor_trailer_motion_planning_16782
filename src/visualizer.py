@@ -23,7 +23,7 @@ BODY = 0.2
 DIAMETER = 0.5
 MAP_RESOLUTION = 0.1
 RECT_RESOLUTION = 0.1
-DOWNSAMPLE_FACTOR = 100
+DOWNSAMPLE_FACTOR = 1
 
 def readMap(mapfile):
     """ Input: mapfile path
@@ -112,7 +112,7 @@ def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious, ax, po
 
 def parseFiileandCreateArray():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--filename", help="file for trajectory", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/ouputs/TestForwardTrajectory.txt")
+    parser.add_argument("--filename", help="file for trajectory", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/output/PlannedTrajectory.txt")
     parser.add_argument("--map_file", help="filepath with solution", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/src/map1.txt")
     parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/ouputs/trajectory_rect.gif", required=False)
     parser.add_argument("--fps", help="frames per second", type=int, default=30, required=False)
