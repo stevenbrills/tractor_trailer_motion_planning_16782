@@ -1,10 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/planner.dir/src/controller.cpp.o"
-  "CMakeFiles/planner.dir/src/controller.cpp.o.d"
   "CMakeFiles/planner.dir/src/forward_simulator.cpp.o"
-  "CMakeFiles/planner.dir/src/forward_simulator.cpp.o.d"
   "CMakeFiles/planner.dir/src/planner.cpp.o"
-  "CMakeFiles/planner.dir/src/planner.cpp.o.d"
   "planner"
   "planner.pdb"
 )
