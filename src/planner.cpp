@@ -17,7 +17,9 @@ static void sample_control_point(
     std::vector<double>& random_sample
 ){
     // Initialize mersenne twister object
-    std::mt19937 mt(std::random_device{}());
+    // std::mt19937 mt(std::random_device{}());
+    std::mt19937 mt(10);
+
 
     if(!(random_sample.size()==2)){
         throw std::runtime_error("Size of the vector for control sample is incorrect.");
@@ -171,8 +173,18 @@ std::vector<std::vector<double>> planner(
         // Find nearest neighbor using euclidean distance
         auto result_pair = find_nearest_neighbor(tree, random_control_sample);
         std::cout<<"Nearest neighbor found"<<result_pair.first->q[0]<<std::endl;
+
+        // If the nearest neighbor is too close, clip the control point by epsilon
+        double euc_dist_bw_control_pts = get_euclidean_distance(result_pair.first->control_input, random_control_sample);
+        if (euc_dist_bw_control_pts > EPSILON){
+            random_control_sample[0] = ((random_control_sample[0]-result_pair.first->control_input[0])/euc_dist_bw_control_pts) + result_pair.first->control_input[0];
+            random_control_sample[1] = ((random_control_sample[1]-result_pair.first->control_input[1])/euc_dist_bw_control_pts) + result_pair.first->control_input[1];
+        }
+
+        // Create segment to expand
         expansion_segment[0] = (*(result_pair.first)).control_input;
         expansion_segment[1] = random_control_sample;
+
 
         // Connect sample to control point of nearest neighbor
         // Expand the state/nodetree
