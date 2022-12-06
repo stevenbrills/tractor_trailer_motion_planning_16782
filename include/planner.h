@@ -67,6 +67,11 @@ double get_gain(
     const double& velocity
 );
 
+bool check_double_equal(
+    double& a,
+    double& b
+);
+
 void get_tractor_axle_center(
     std::vector<double>& q
 );

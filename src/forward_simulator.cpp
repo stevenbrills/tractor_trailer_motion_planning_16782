@@ -657,7 +657,7 @@ std::vector<std::vector<double>> segment_simulator(
         // If the new segment starts and the intersection cannot be found (precision issues for double and a result of 
         // termination critera of last segment), inflate the lookaheads by 1%
         if(while_loop_counter==0 && (!found_intersection_flag)){
-            std::cout << "Inflation required!" << std::endl;
+            // std::cout << "Inflation required!" << std::endl;
             if(is_forward){
                 forward_lookahead_radius = forward_lookahead_radius*1.01;
                 found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
@@ -665,7 +665,7 @@ std::vector<std::vector<double>> segment_simulator(
             }
             else{
                 backward_lookahead_radius = backward_lookahead_radius*1.05;
-                std::cout << "Inflated backward lookahead radius: " << backward_lookahead_radius << std::endl;
+                // std::cout << "Inflated backward lookahead radius: " << backward_lookahead_radius << std::endl;
                 // std::cout << "Current trailer X: " << q_current[0] << "Current Trailer Y: " << q_current[1] << std::endl;
                 found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
                 // std::cout << "Dist to segment start: " << sqrt(pow(segment[0][0] - q_current[0],2)+pow(segment[0][1] - q_current[1],2)) << std::endl;
@@ -730,12 +730,14 @@ std::vector<std::vector<double>> segment_simulator(
 
     std::cout << "Simulation complete!" << std::endl;
     if(!found_intersection_flag){
-        std::cout << "Simulation cut off since no intersection point found" << std::endl;
+        // std::cout << "Simulation cut off since no intersection point found" << std::endl;
         // std::cout << "Terminated intersection point is"
     }
     // std::cout<<"Trajectory size: "<<trajectory.size()<<std::endl;
     if(trajectory.size()==0){
         std::cout << "Trajectory size is zero!" << std::endl;
+        std::cout << "Segment X0: " << segment[0][0] << "Segment Y0: " << segment[0][1] << std::endl;
+        std::cout << "Segment X1: " << segment[1][0] << "Segment Y1: " << segment[1][1] << std::endl;
     }
     return trajectory;
 }

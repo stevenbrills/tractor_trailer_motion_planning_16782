@@ -45,16 +45,33 @@ bool get_direction(
     // This function returns false if the control sample is behind the rear axle
     // and returns true if the control sample is infront of the rear axle.
 
-    float m = tan(node->q[2] - M_PI_2);
-    float c = node->q[1] - (m*node->q[0]);
+    double m = tan(node->q[2] - M_PI_2);
+    double c = node->q[1] - (m*node->q[0]);
 
-    float y = m*control_sample[0] + c;
-    std::cout << "Computed value of y: " << y << std::endl;
-    std::cout << "Control sample y: " << control_sample[0] << " "<< control_sample[1] << std::endl;
-    if(std::isnan(y)){
-        std::cout<<" y is nan"<<std::endl;
-        return true;
+    double y = m*control_sample[0] + c;
+    // std::cout << "Slope of the line is: " << m <<std::endl;
+    // std::cout << "Computed value of y: " << y << std::endl;
+    // std::cout << "Control sample y: " << control_sample[0] << " " << control_sample[1] << std::endl;
+
+    if (std::isnan(m)){
+        double theta = node->q[2];
+        double pi = M_PI;
+        if(check_double_equal(theta, pi)){
+            if(control_sample[0] > node->q[0]){
+                return false;
+            }
+
+            return true;
+        }
+        else{
+            if(control_sample[0] >= node->q[0]){
+                return true;
+            }
+
+            return false;
+        }
     }
+
     if(y>=control_sample[1]){
         return false;
     }
