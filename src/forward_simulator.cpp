@@ -722,10 +722,6 @@ std::vector<std::vector<double>> segment_simulator(
         trajectory.push_back(q_next);
 
         while_loop_counter++;
-        if(while_loop_counter>130000){
-            std::cout << "While loop counter exceeded 1000!" << std::endl;
-            break;
-        }
     }
 
     std::cout << "Simulation complete!" << std::endl;
