@@ -13,10 +13,12 @@ find_package(ct_optcon REQUIRED)
 
 #file(GLOB_RECURSE SRC_FILES src/*.cpp)
 project(tractor_trailer_planner VERSION 1.0)
+# add_executable(forward_simulator src/forward_simulator.cpp src/controller.cpp)
 add_executable(planner src/forward_simulator.cpp src/controller.cpp src/planner.cpp)
 # add_executable(controller src/controller.cpp)
 # add_executable(controller_new src/controller_new_convention.cpp)
 
+# target_include_directories(forward_simulator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(planner PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # target_include_directories(controller PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # target_include_directories(controller_new PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

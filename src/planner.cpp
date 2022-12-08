@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 #include "matplotlibcpp.h"
-#define SAMPLING_TRIALS 1000
+#define SAMPLING_TRIALS 5000
 double map_side = 105;
 // double map_y = 105;
 
@@ -18,7 +18,9 @@ static void sample_control_point(
 ){
     // Initialize mersenne twister object
     // std::mt19937 mt(std::random_device{}());
-    std::mt19937 mt(10);
+    // static std::mt19937 mt(10);
+    static std::mt19937 mt(20);
+
 
 
     if(!(random_sample.size()==2)){
@@ -97,18 +99,27 @@ std::pair<Node*, bool> find_nearest_neighbor(
     const std::unordered_set<Node*, NodePtrHasher, NodePtrComparator>& tree,
     const std::vector<double>& control_sample
 ){
-    double lowest_score = sqrt(pow(((*(tree.begin()))->control_input[0] - control_sample[0]),2) + 
-    pow(((*(tree.begin()))->control_input[1] - control_sample[1]),2));
+
+    Node* nearest_node = (*(tree.begin()));
+
+    double lowest_score = sqrt(pow((nearest_node->control_input[0] - control_sample[0]),2) + 
+    pow((nearest_node->control_input[1] - control_sample[1]),2));
 
     std::pair<Node*, bool> result;
 
-    Node* nearest_node;
+    // Node* nearest_node;
+
+    // nearest_node = *();
 
     for(Node* node : tree){
 
         if(get_euclidean_distance(control_sample, (*node).control_input) <= lowest_score){
 
+            // std::cout << "Inside get euclidean condition" << std::endl;
+
             if(get_direction(node, control_sample)){
+                // std::cout << "Inside get direction condition" << std::endl;
+
 
                 std::vector<double> tractor_axle_center(2,0);
                 tractor_axle_center.push_back((*node).q[4]);
@@ -120,6 +131,8 @@ std::pair<Node*, bool> find_nearest_neighbor(
 
             }
             else{
+                std::cout << "Inside else of get direction condition" << std::endl;
+                std::cout << "X value of nearest node in find nearest node function if condition: " << (*node).q[0] << std::endl;
                 std::vector<double> trailer_axle_center(2,0);
                 trailer_axle_center.push_back((*node).q[0]);
                 trailer_axle_center.push_back((*node).q[1]);
@@ -132,6 +145,7 @@ std::pair<Node*, bool> find_nearest_neighbor(
     }
 
     result.first = nearest_node;
+    std::cout << "X value of nearest node in find nearest node function: " << nearest_node->q[0] << std::endl;
     result.second = get_direction(nearest_node, control_sample);
     std::cout<<"exiting nearest neighbor"<<std::endl;
     return result;
@@ -146,7 +160,7 @@ std::vector<std::vector<double>> planner(
     int sampling_trials = SAMPLING_TRIALS;
 
     // Segment tracking direction boolean vector
-    std::vector<bool> tracking_direction;
+    // std::vector<bool> tracking_direction;
 
     // Create the first node object which pairs q_init to initial control point
     Node* InitialNode = new Node;
@@ -164,8 +178,16 @@ std::vector<std::vector<double>> planner(
     // Store tree in unordered set
     std::unordered_set<Node*, NodePtrHasher, NodePtrComparator> tree;
     tree.insert(InitialNode);
+
+    int sampling_counter=0;
     // Loop for sampling_trials number of times
     for(int i=0; i<sampling_trials; i++){
+
+        // if(sampling_counter==1){
+        //     break;
+        // }
+        sampling_counter++;
+        std::cout << "------------------------------------" << std::endl;
         std::cout<<"sampling trial::::::::::::::"<<i<<std::endl;
         std::vector<double> random_control_sample(2,0);
         sample_control_point(random_control_sample);
@@ -173,13 +195,32 @@ std::vector<std::vector<double>> planner(
         // Find nearest neighbor using euclidean distance
         auto result_pair = find_nearest_neighbor(tree, random_control_sample);
         std::cout<<"Nearest neighbor found"<<result_pair.first->q[0]<<std::endl;
+        std::cout << "Direction of travel: " << static_cast<bool>(result_pair.second) << std::endl;
+        // tracking_direction.push_back(result_pair.second);
 
+        if (std::isnan(result_pair.first->q[0])){
+
+            std::cout << "The node that was found is nan" << std::endl;
+            for(double state_val : result_pair.first->q){
+                std::cout << state_val << std::endl;
+            }
+
+        }
+
+        std::cout << "Random sample before clipping X: " << random_control_sample[0] << std::endl;
+        std::cout << "Random sample before clipping Y: " << random_control_sample[1] << std::endl;
         // If the nearest neighbor is too close, clip the control point by epsilon
         double euc_dist_bw_control_pts = get_euclidean_distance(result_pair.first->control_input, random_control_sample);
         if (euc_dist_bw_control_pts > EPSILON){
-            random_control_sample[0] = ((random_control_sample[0]-result_pair.first->control_input[0])/euc_dist_bw_control_pts) + result_pair.first->control_input[0];
-            random_control_sample[1] = ((random_control_sample[1]-result_pair.first->control_input[1])/euc_dist_bw_control_pts) + result_pair.first->control_input[1];
+            random_control_sample[0] = ((random_control_sample[0]-result_pair.first->control_input[0])/euc_dist_bw_control_pts)*EPSILON + result_pair.first->control_input[0];
+            random_control_sample[1] = ((random_control_sample[1]-result_pair.first->control_input[1])/euc_dist_bw_control_pts)*EPSILON + result_pair.first->control_input[1];
         }
+
+        std::cout << "Nearest Neighbor Control Input X: " << result_pair.first->control_input[0] << std::endl;
+        std::cout << "Nearest Neighbor Control Input Y: " << result_pair.first->control_input[1] << std::endl;
+        std::cout << "Random sample X: " << random_control_sample[0] << std::endl;
+        std::cout << "Random sample Y: " << random_control_sample[1] << std::endl;
+
 
         // Create segment to expand
         expansion_segment[0] = (*(result_pair.first)).control_input;
@@ -190,6 +231,8 @@ std::vector<std::vector<double>> planner(
         // Expand the state/nodetree
         // For this test implementation, forget about obstacle and collision checking
         auto trajectory = segment_simulator((*result_pair.first).q, expansion_segment, result_pair.second);
+        // std::cout << "Last state from simulated trajectory X: " << trajectory[trajectory.size()-1][0] << std::endl;
+        std::cout << "Size of trajectory: " << trajectory.size() << std::endl;
         if(trajectory.size() == 0) continue;
         Node* new_node = new Node;
         new_node->q = trajectory[trajectory.size()-1];
@@ -209,17 +252,24 @@ std::vector<std::vector<double>> planner(
 
     // Pick a random node from the tree and backtrack till first node
     Node* random_node = pick_random_node_from_tree(tree);
+    // Node* random_node = tree.begin();
     Node* parent_node = random_node;
 
     std::vector<std::vector<double>> piecewise_path;
 
+    int tracking_direction_counter = 0;
     while(!(*parent_node).start){
         piecewise_path.push_back((*parent_node).control_input);
+        piecewise_path[piecewise_path.size()-1].push_back((*parent_node).is_forward);
         parent_node = (*parent_node).parent_node;
     }
     piecewise_path.push_back((*parent_node).control_input);
 
     std::reverse(piecewise_path.begin(),piecewise_path.end());
+
+    // for(int i=1; i<piecewise_path.size(); i++){
+    //     piecewise_path[i].push_back(tracking_direction[i-1]);
+    // }
 
     auto final_trajectory = forward_simulator(q_init, piecewise_path);
 
@@ -429,6 +479,7 @@ int main(){
     q_init[0] = 0.5;
     q_init[1] = 0.5;
     q_init[2] = M_PI_2;
+    // q_init[3] = 1*M_PI + -1*0.1;
     q_init[3] = M_PI;
     get_tractor_axle_center(q_init);
 

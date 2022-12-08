@@ -13,10 +13,10 @@
 //Forward simuation parameters
 
 // forward lookahead radius
-double forward_lookahead_radius = 1.0;
+double forward_lookahead_radius = 1;
 
 // backward lookahead radius
-double backward_lookahead_radius = 2.0;
+double backward_lookahead_radius = 2;
 
 // tractor wheelbase
 double tractor_wheelbase = 0.3;
@@ -29,6 +29,9 @@ double tractor_m = 0.2;
 
 // Tractor tracking velocity
 double velocity = 0.2;
+
+// Alpha E Max
+double alpha_e_max = atan(tractor_wheelbase/sqrt(pow(trailer_wheelbase,2) - pow(tractor_m,2)));
 
 namespace plt = matplotlibcpp;
 
@@ -102,7 +105,13 @@ static bool find_intersection_point(
                 intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
                 // std::cout << "equal intersection points" << std::endl;
                 // std::cout << "id_start: " << id_start << "id_goal: " << id_goal << std::endl;
-                return true; // Intersection detected
+                if((t1>=0) && (t1 <=1)){
+                    return true; 
+                } //intersection detected
+                else{
+                    // std::cout << "t1 is out of bounds reverse equal" << std::endl;
+                    return false;
+                }
 
             }
             else{
@@ -123,13 +132,20 @@ static bool find_intersection_point(
 
                 // std::cout << "id_start: " << id_start << "id_goal: " << id_goal << std::endl;
 
-                return true;  //intersection detected
+                if((t1>=0) && (t1 <=1)){
+                    return true; 
+                } //intersection detected
+                else{
+                    // std::cout << "t1 is out of bounds reverse unequal" << std::endl;
+                    return false;
+                }
 
             }
 
         }
         // else{
         // std::cout << "No real roots: " << "id_start: " << id_start << "id_goal: " << id_goal << std::endl;
+        std::cout << "No real roots: " << std::endl;
         return false;
 
         // }
@@ -163,9 +179,18 @@ static bool find_intersection_point(
 
             if (check_double_equal(t1, t2)){
 
+                if((t1>=0) && (t1 <=1)){
                 intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
                 intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
                 return true; // Intersection detected
+                }
+                else{
+                    // std::cout << "t1 is out of bounds: " << t1 << std::endl;
+                    // std::cout << "t2 is: " << t2 << std::endl;
+                    return false;
+                }
+
+
 
             }
             else{
@@ -178,17 +203,23 @@ static bool find_intersection_point(
 
                 double x_intersection2 = (piecewise_linear[id_goal][0]*t2) + (1-t2)*piecewise_linear[id_start][0];
                 double y_intersection2 = (piecewise_linear[id_goal][1]*t2) + (1-t2)*piecewise_linear[id_start][1];
-
-                intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
-                intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
-
-                return true;  //intersection detected
+                if((t1>=0) && (t1 <=1)){
+                    intersection_point[0] = (piecewise_linear[id_goal][0]*t1) + (1-t1)*piecewise_linear[id_start][0];
+                    intersection_point[1] = (piecewise_linear[id_goal][1]*t1) + (1-t1)*piecewise_linear[id_start][1];
+                    return true;
+                }
+                else{
+                    // std::cout << "t1 is out of bounds: " << t1 << std::endl;
+                    // std::cout << "t2 is: " << t2 << std::endl;
+                    return false;
+                }
+  //intersection detected
 
             }
 
         }
 
-        // std::cout << "No real roots" << std::endl;
+        std::cout << "No real roots" << std::endl;
         return false;
 
     }
@@ -379,6 +410,38 @@ void get_tractor_axle_center(
 
 }
 
+double wrap_angle(
+    const double input_angle
+){
+
+    if((input_angle >= (-1*M_PI)) && (input_angle <= (M_PI))){
+        return input_angle;
+    }
+
+    double remainder = fmod(input_angle,M_PI);
+
+    if (remainder < 0){
+        return (M_PI + remainder);
+    }
+    
+    return ((-1*M_PI) + remainder);
+}
+
+double clip_to_alpha_e(
+    double angle
+){
+    if(angle<(-1*alpha_e_max)){
+        return (-1*alpha_e_max);
+    }
+
+    if(angle>(1*alpha_e_max)){
+        return (1*alpha_e_max);
+    }
+
+    return angle;
+
+}
+
 
 double get_alpha_for_forward_motion(
     const std::vector<double>& intersection_point,
@@ -401,9 +464,28 @@ double get_alpha_for_forward_motion(
 
     double r1 = (pow(forward_lookahead_radius,2))/(2*fabs(projected_distance_on_axle));
 
-    double alpha = atan(tractor_wheelbase/r1)*(projected_distance_on_axle/fabs(projected_distance_on_axle));
+    double alpha=0;
+
+    if(projected_distance_on_axle==0){
+        alpha = 0;
+    }
+    else{
+        alpha = atan(tractor_wheelbase/r1)*(projected_distance_on_axle/fabs(projected_distance_on_axle));
+    }
+
+    alpha = wrap_angle(alpha);
+
+
 
     // std::cout << "Computed alpha value is: " << alpha << std::endl;
+    if(std::isnan(alpha)){
+        std::cout << "Tractor theta: " << theta_tractor << std::endl;
+        std::cout << "tx: " << tx << std::endl;
+        std::cout << "ty: " << ty << std::endl;
+        std::cout << "projected_distance_on_axle_normal: " << projected_distance_on_axle_normal << std::endl;
+        std::cout << "projected_distance_on_axle: " << projected_distance_on_axle << std::endl;
+        std::cout << "R1: " << r1 << std::endl;
+    }
 
     return alpha;
 }
@@ -452,43 +534,72 @@ std::vector<double> q_dot(
 ){
     std::vector<double> q_dot(4,0);
 
-    double r1 = tractor_wheelbase/tan(alpha);
+    double va=0;
+    double r1=0;
+    double psi=0;
+    double r2=0;
+    double r3=0;
+    double vb=0;
+    double omega_2=0;
+    double trailer_theta_dot = 0;
+    double hitch_turn_radius_zero_alpha = 0;
+    double phi = 0;
+    double beta_dot = 0;
+    double omega_1 = 0;
+    
+    r1 = tractor_wheelbase/tan(alpha);
 
-    double psi = -1*(alpha/fabs(alpha))*atan(tractor_m/fabs(r1));
+    psi = -1*(alpha/fabs(alpha))*atan(tractor_m/fabs(r1));
 
-    double va = (velocity/fabs(velocity))*fabs(((velocity*tractor_m*tan(alpha))/(tractor_wheelbase*sin(psi))));
+    va = (velocity/fabs(velocity))*fabs(((velocity*tractor_m*tan(alpha))/(tractor_wheelbase*sin(psi))));
 
-    double vb = va*fabs(cos(psi-q_current[3]));
+    vb = va*fabs(cos(psi-q_current[3]));
 
-    double r2 = tractor_m/sin(psi);
+    r2 = tractor_m/sin(psi);
 
-    double r3 = trailer_wheelbase/sin(psi-q_current[3]);
+    r3 = trailer_wheelbase/sin(psi-q_current[3]);
 
-    double omega_2 = ((r2)/(r1*-1*r3));
+    omega_1 = velocity*(1/r1);
+
+    omega_2 = velocity*((r2)/(r1*r3));
+
+    // if(r3<0){
+    //     omega_2 = ((r2)/(r1*-1*r3));
+    // }
+    // else{
+    //     omega_2 = ((r2)/(r1*r3));
+    // }
+
+    trailer_theta_dot = omega_2;
+
+    beta_dot = velocity*(((r2)/(r1*r3)) - (1/r1));
+
+    // Special case when alpha equals zero
+    if(alpha==0){
+        va = velocity;
+        psi = 0;
+        phi = M_PI_2 - (fabs(q_current[3]) - M_PI_2);
+        hitch_turn_radius_zero_alpha = trailer_wheelbase/sin(phi);
+        trailer_theta_dot = va/hitch_turn_radius_zero_alpha;
+        beta_dot = trailer_theta_dot;
+        vb = va*fabs(cos(psi-q_current[3]));
+
+        if(sin(phi)==0){
+            beta_dot = 0;
+            trailer_theta_dot = 0;
+        }
+    }
+
+    
 
     q_dot[0] = vb*cos(q_current[2]);
     q_dot[1] = vb*sin(q_current[2]);
     q_dot[2] = velocity*((r2)/(r1*r3));
     q_dot[3] = velocity*(((r2)/(r1*r3)) - (1/r1));
 
+    // std::cout << "q-dot called" << std::endl;
+
     return q_dot;
-}
-
-double wrap_angle(
-    const double& input_angle
-){
-
-    if((input_angle >= (-1*M_PI)) && (input_angle <= (M_PI))){
-        return input_angle;
-    }
-
-    double remainder = fmod(input_angle,M_PI);
-
-    if (remainder < 0){
-        return (M_PI + remainder);
-    }
-    
-    return ((-1*M_PI) + remainder);
 }
 
 std::vector<double> rk4_integrator(
@@ -543,6 +654,15 @@ const double& timestep
 
     // q_next[4] = q_next[0] + trailer_wheelbase*cos(q_next[3]) + tractor_m*cos(M_PI - q_next[3] + q_next[2]);
     // q_next[5] = q_next[1] + trailer_wheelbase*sin(q_next[3]) + tractor_m*sin(M_PI - q_next[3] + q_next[2]);
+
+    if(std::isnan(q_next[0])){
+        std::cout << "The integrated step is nan!" << std::endl;
+        std::cout << "The previous state x is: " << q_current[0] << std::endl;
+        std::cout << "The k values are: " << k1[0] << ", " << k2[0] << ", " << k3[0] << ", " << k4[0] << std::endl;
+        std::cout << "alpha: " << alpha << std::endl;
+        std::cout << "velocity: " << velocity << std::endl;
+
+    }
 
     return q_next;
 
@@ -599,6 +719,12 @@ std::vector<std::vector<double>> segment_simulator(
     std::vector<std::vector<double>> segment,
     bool is_forward
 ){
+    std::cout << "Received segment start X: " << segment[0][0] << std::endl;
+    std::cout << "Received segment start Y: " << segment[0][1] << std::endl;
+    std::cout << "Received segment goal X: " << segment[1][0] << std::endl;
+    std::cout << "Received segment goal Y: " << segment[1][1] << std::endl;
+    std::cout << "Received direction of travel: " << is_forward << std::endl;
+
 
     // Set velocity sign based on direction
     if(is_forward){
@@ -656,8 +782,8 @@ std::vector<std::vector<double>> segment_simulator(
 
         // If the new segment starts and the intersection cannot be found (precision issues for double and a result of 
         // termination critera of last segment), inflate the lookaheads by 1%
-        if(while_loop_counter==0 && (!found_intersection_flag)){
-            // std::cout << "Inflation required!" << std::endl;
+        if(while_loop_counter<=200 && (!found_intersection_flag)){
+            std::cout << "Inflation required!" << std::endl;
             if(is_forward){
                 forward_lookahead_radius = forward_lookahead_radius*1.01;
                 found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
@@ -673,7 +799,14 @@ std::vector<std::vector<double>> segment_simulator(
             }
         }
 
-        // std::cout << "Intersection X: " << intersection_point[0] << ", Intersection Y: " << intersection_point[1] << std::endl;
+        // if((while_loop_counter%20000)==0){
+        //     std::cout << "Intersection X: " << intersection_point[0] << ", Intersection Y: " << intersection_point[1] << "   ";
+        // }
+        // if(while_loop_counter==0){
+        //     // Need to add condition that prevents intersection points outside the segment
+        //     std::cout << "While loop counter: " << while_loop_counter << std::endl;
+        //     std::cout << "Intersection X: " << intersection_point[0] << ", Intersection Y: " << intersection_point[1] << std::endl;
+        // }
         // std::cout << "Was an intersection found?: " << found_intersection_flag << std::endl;
 
         if(!found_intersection_flag){
@@ -690,15 +823,24 @@ std::vector<std::vector<double>> segment_simulator(
 
             // beta desired works only for the reversing simulation now, need to create a different approach for the forward motion
             beta_desired = get_beta_desired(q_current, intersection_point, is_forward);
+            // if((while_loop_counter%20000)==0){
+            //     std::cout << "Beta desired: " << beta_desired << "   beta_now: " << q_current[3] << "   ";
+            // }
 
             // Add the proportional gain beta
             beta_e = beta_desired + beta_prop_gain*(beta_desired - q_current[3]);
 
             // Get the value of alpha_e from beta_e using the pre-compensation link
             alpha_e = get_alpha_e(beta_desired);
+            // if((while_loop_counter%20000)==0){
+            //     std::cout << "Alpha_e: " << alpha_e << "    ";
+            // }
 
             // Use alpha_e to compute steering angle input
-            alpha = alpha_e - get_gain(beta_e, alpha_e, velocity)*(q_current[3] - beta_e);
+            alpha = clip_to_alpha_e(wrap_angle(alpha_e - get_gain(beta_e, alpha_e, velocity)*(q_current[3] - beta_e)));
+            // if((while_loop_counter%20000)==0){
+            //     // std::cout << "Alpha: " << alpha << std::endl;
+            // }
 
             // Integrate motion through 
             q_next = rk4_integrator(alpha, velocity, q_current, timestep);
@@ -707,13 +849,23 @@ std::vector<std::vector<double>> segment_simulator(
         else{
 
             // Use alpha_e to compute steering angle input
-            alpha = get_alpha_for_forward_motion(intersection_point, q_current);
+            alpha = clip_to_alpha_e(get_alpha_for_forward_motion(intersection_point, q_current));
             alpha = 1*alpha;
+
+            // std::cout << "In forward and alpha is: " << alpha << std::endl;
+
+            if (std::isnan(alpha)){
+                std::cout << "Alpha was nan" << std::endl;
+            }
 
             // Integrate motion through 
             q_next = rk4_integrator(alpha, velocity, q_current, timestep);
 
         }
+
+        // if((while_loop_counter%1)==0){
+        //     std::cout << "State X: " << q_next[0] << ", State Y: " << q_next[1] << std::endl;
+        // }
 
         q_current = q_next;
 
@@ -726,15 +878,16 @@ std::vector<std::vector<double>> segment_simulator(
 
     std::cout << "Simulation complete!" << std::endl;
     if(!found_intersection_flag){
-        // std::cout << "Simulation cut off since no intersection point found" << std::endl;
+        std::cout << "Simulation cut off since no intersection point found" << std::endl;
+        // std::cout << "X value of last q_next state" << q_next[0] << std::endl;
         // std::cout << "Terminated intersection point is"
     }
     // std::cout<<"Trajectory size: "<<trajectory.size()<<std::endl;
-    if(trajectory.size()==0){
-        std::cout << "Trajectory size is zero!" << std::endl;
-        std::cout << "Segment X0: " << segment[0][0] << "Segment Y0: " << segment[0][1] << std::endl;
-        std::cout << "Segment X1: " << segment[1][0] << "Segment Y1: " << segment[1][1] << std::endl;
-    }
+    // if(trajectory.size()==0){
+    //     std::cout << "Trajectory size is zero!" << std::endl;
+    //     std::cout << "Segment X0: " << segment[0][0] << "Segment Y0: " << segment[0][1] << std::endl;
+    //     std::cout << "Segment X1: " << segment[1][0] << "Segment Y1: " << segment[1][1] << std::endl;
+    // }
     return trajectory;
 }
 
@@ -1292,11 +1445,11 @@ static void test_forward_simulator_forward_motion(){
     path[1][1] = 5;
     path[1][2] = 1;
 
-    path[2][0] = -7;
+    path[2][0] = 7;
     path[2][1] = 6;
     path[2][2] = 1;
 
-    path[3][0] = -9;
+    path[3][0] = 9;
     path[3][1] = 0;
     path[3][2] = 1;
 
@@ -1446,12 +1599,12 @@ static void test_forward_simulator_mixed_path(){
     test_trajectory_file << "Piecewise Linear Path" << std::endl;
 
     for (auto& segment : path){
-        test_trajectory_file << segment[0] << ", " << segment[1] << std::endl;
+        test_trajectory_file << segment[0] << " " << segment[1] << std::endl;
     }
 
     for (auto& state : traj){
-        test_trajectory_file << state[0] << "," << state[1] << "," << state[2] << "," <<
-        (M_PI - state[3]) << "," << state[4] << "," << state[5] << "," << state[6] << std::endl;
+        test_trajectory_file << state[0] << " " << state[1] << " " << state[2] << " " <<
+        (M_PI - state[3]) << " " << state[4] << " " << state[5] << " " << state[6] << std::endl;
     }
 
 	test_trajectory_file << "End of Trajectory Sequence" << std::endl;
@@ -1481,11 +1634,11 @@ static void test_forward_simulator_mixed_path(){
 
 //     // test_rk4_integration_function();
 
-//     test_forward_simulator_reversing();
+//     // test_forward_simulator_reversing();
 
 //     // test_forward_simulator_forward_motion();
 
-//     // test_forward_simulator_mixed_path();
+//     test_forward_simulator_mixed_path();
 
 //     // test_get_alpha_for_forward_motion();
 
