@@ -23,7 +23,7 @@ BODY = 0.2
 DIAMETER = 0.5
 MAP_RESOLUTION = 0.1
 RECT_RESOLUTION = 0.1
-DOWNSAMPLE_FACTOR = 100
+DOWNSAMPLE_FACTOR = 500
 
 def readMap(mapfile):
     """ Input: mapfile path
@@ -92,8 +92,8 @@ def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious, ax, po
     p1 = [trailerData[0][0],trailerData[0][1]]
     p2 = [trailerData[-1][0],trailerData[-1][1]]
     x_trailer, y_trailer = [p1[0], p2[0]], [p1[1], p2[1]]
-    plt.xlim(-10,10)
-    plt.ylim(-10,10)
+    plt.xlim(-2,105)
+    plt.ylim(-2,105)
     plt.axis('off')
     artists.append(plt.plot(x_trailer, y_trailer, color = 'blue', linewidth=8))
     artists.append(plt.plot(x_trac, y_tract, color = 'red', linewidth=8))
@@ -112,10 +112,10 @@ def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious, ax, po
 
 def parseFiileandCreateArray():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--filename", help="file for trajectory", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/ouputs/TestForwardTrajectory.txt")
-    parser.add_argument("--map_file", help="filepath with solution", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/src/map1.txt")
-    parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="/home/naren/catkin_cl_rrt/tractor_trailer_motion_planning_16782/ouputs/trajectory_rect.gif", required=False)
-    parser.add_argument("--fps", help="frames per second", type=int, default=30, required=False)
+    parser.add_argument("--filename", help="file for trajectory", type=str, default="/home/steven/CMU/planning_project/output/PlannedTrajectory.txt")
+    parser.add_argument("--map_file", help="filepath with solution", type=str, default="/home/steven/CMU/planning_project/maps/map1.txt")
+    parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="/home/steven/CMU/planning_project/ouputs/planned.gif", required=False)
+    parser.add_argument("--fps", help="frames per second", type=int, default=10, required=False)
     parser.add_argument("--incPrev", help="include previous poses (1), else don't (0). Note this slows gif creation speed",
                                         type=int, default=0, required=False)
     
@@ -153,13 +153,16 @@ def parseFiileandCreateArray():
     tractor_coords = []
     trailer_coords = []
     i = 0
+    found = False
     with open(args.filename) as f:
         lines = f.readlines()
         for line in lines:
-            if(i<9):
-                i+=1
+            if line.strip()== 'Trajectory':
+                found = True
                 continue
-            elif i%DOWNSAMPLE_FACTOR == 0:
+            if not found:
+                continue
+            if i%DOWNSAMPLE_FACTOR == 0:
                 print("Processing line: ", i)
                 x,y,theta,beta,x2,y2,alpha = line.split(' ')
                 x = float(x)
@@ -174,16 +177,20 @@ def parseFiileandCreateArray():
     i = 0
     points = []
     piecewise_llinear_paths = []
+    found = False
     with open(args.filename) as f:
         lines = f.readlines()
         for line in lines:
-            i+=1
-            if i<5:
+            if line.strip() == 'Piecewise Linear Path':  # Or whatever test is needed
+                found = True
+                continue
+    # Reads text until the end of the block:
+            if line.strip() == 'Trajectory':
+                break
+            if not found:
                 continue
             x,y = float(line.split(' ')[0]), float(line.split(' ')[1])
             piecewise_llinear_paths.append([x,y])
-            if i>8:
-                break
     print(piecewise_llinear_paths)
     fig,ax = plt.subplots()
     numFrames = len(tractor_coords)
@@ -191,7 +198,7 @@ def parseFiileandCreateArray():
     L = plt.legend(loc='upper right', shadow=True, fontsize='large')
     ani = FuncAnimation(fig, createSingleFrame, repeat=False,
         frames=numFrames, fargs=[ tractor_coords, trailer_coords, args.incPrev, ax, polygons, piecewise_llinear_paths, L])    
-    ani.save(args.gifFilepath, dpi=300, writer=PillowWriter(fps=args.fps))
+    ani.save(args.gifFilepath, dpi=100, writer=PillowWriter(fps=args.fps))
     print("Saved gif to: ", args.gifFilepath)
 
 if __name__ == "__main__":

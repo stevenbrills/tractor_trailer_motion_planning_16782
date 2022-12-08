@@ -1,1 +1,1 @@
-/usr/bin/c++     CMakeFiles/forward_simulator.dir/src/forward_simulator.cpp.o CMakeFiles/forward_simulator.dir/src/controller.cpp.o  -o forward_simulator  /usr/local/lib/libct_plot.so /usr/lib/x86_64-linux-gnu/libpython3.8.so -lpthread -ldl -llapack 
+/usr/bin/c++ CMakeFiles/forward_simulator.dir/src/forward_simulator.cpp.o CMakeFiles/forward_simulator.dir/src/controller.cpp.o -o forward_simulator  /usr/local/lib/libct_plot.so /usr/lib/x86_64-linux-gnu/libpython3.10.so -lpthread -ldl -llapack 

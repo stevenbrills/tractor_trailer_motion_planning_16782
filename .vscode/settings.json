@@ -67,6 +67,14 @@
         "cfenv": "cpp",
         "cinttypes": "cpp",
         "typeindex": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "codecvt": "cpp",
+        "regex": "cpp",
+        "unordered_set": "cpp",
+        "filesystem": "cpp",
+        "future": "cpp",
+        "shared_mutex": "cpp",
+        "valarray": "cpp",
+        "*.ipp": "cpp"
     }
 }
