@@ -114,8 +114,8 @@ def parseFiileandCreateArray():
     parser = argparse.ArgumentParser()
     parser.add_argument("--filename", help="file for trajectory", type=str, default="/home/steven/CMU/planning_project/output/PlannedTrajectory.txt")
     parser.add_argument("--map_file", help="filepath with solution", type=str, default="/home/steven/CMU/planning_project/maps/map1.txt")
-    parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="/home/steven/CMU/planning_project/ouputs/planned.gif", required=False)
-    parser.add_argument("--fps", help="frames per second", type=int, default=10, required=False)
+    parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="/home/steven/CMU/planning_project/ouputs/planned_goal.gif", required=False)
+    parser.add_argument("--fps", help="frames per second", type=int, default=20, required=False)
     parser.add_argument("--incPrev", help="include previous poses (1), else don't (0). Note this slows gif creation speed",
                                         type=int, default=0, required=False)
     

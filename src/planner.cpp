@@ -260,6 +260,7 @@ std::vector<std::vector<double>> planner(
             goal_node->is_forward = result_pair.second;
             tree.insert(goal_node);
             path_found = true;
+            std::cout << "Goal X: " << goal_node->q[0] << "   And Goal Y: " << goal_node->q[1] << std::endl;
             break;
         }
 
@@ -286,6 +287,7 @@ std::vector<std::vector<double>> planner(
         std::cout << "A path was found!" << std::endl;
 
         Node* parent_node = goal_node;
+        std::cout << "Goal X: " << goal_node->q[0] << "   And Goal Y: " << goal_node->q[1] << std::endl;
 
         int tracking_direction_counter = 0;
         while(!(*parent_node).start){
