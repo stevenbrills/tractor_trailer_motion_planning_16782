@@ -11,6 +11,7 @@
 #define BACKWARD_LOOKAHEAD_DISTANCE 2.0
 #define VELOCITY 0.2
 #define EPSILON 50
+#define GOAL_XY_TOLERANCE 5
 
 struct Node{
     std::vector<double> q;

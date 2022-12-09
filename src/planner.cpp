@@ -41,6 +41,18 @@ double get_euclidean_distance(
     return sqrt(pow(p1[0] - p2[0],2) + pow(p1[1] - p2[1],2));
 }
 
+bool check_goal_thresholds(
+    const std::vector<double>& q,
+    const std::vector<double>& q_goal
+){
+
+    if(get_euclidean_distance(q, q_goal) < GOAL_XY_TOLERANCE){
+        return true;
+    }
+    return false;
+
+}
+
 bool get_direction(
     const Node* node,
     const std::vector<double>& control_sample
@@ -179,6 +191,11 @@ std::vector<std::vector<double>> planner(
     std::unordered_set<Node*, NodePtrHasher, NodePtrComparator> tree;
     tree.insert(InitialNode);
 
+    Node* goal_node = new Node;
+
+    // Flag for found path termination
+    bool path_found = false;
+
     int sampling_counter=0;
     // Loop for sampling_trials number of times
     for(int i=0; i<sampling_trials; i++){
@@ -234,6 +251,19 @@ std::vector<std::vector<double>> planner(
         // std::cout << "Last state from simulated trajectory X: " << trajectory[trajectory.size()-1][0] << std::endl;
         std::cout << "Size of trajectory: " << trajectory.size() << std::endl;
         if(trajectory.size() == 0) continue;
+
+        // Check if the node is within the goal region tolerance, if yes break
+        if(check_goal_thresholds(trajectory[trajectory.size()-1], q_goal)){
+            goal_node->q = trajectory[trajectory.size()-1];
+            goal_node->control_input = random_control_sample;
+            goal_node->parent_node = result_pair.first;
+            goal_node->is_forward = result_pair.second;
+            tree.insert(goal_node);
+            path_found = true;
+            break;
+        }
+
+
         Node* new_node = new Node;
         new_node->q = trajectory[trajectory.size()-1];
         new_node->control_input = random_control_sample;
@@ -250,22 +280,44 @@ std::vector<std::vector<double>> planner(
     }
     std::cout<<"Tree size: "<<tree.size()<<std::endl;
 
-    // Pick a random node from the tree and backtrack till first node
-    Node* random_node = pick_random_node_from_tree(tree);
-    // Node* random_node = tree.begin();
-    Node* parent_node = random_node;
-
     std::vector<std::vector<double>> piecewise_path;
 
-    int tracking_direction_counter = 0;
-    while(!(*parent_node).start){
-        piecewise_path.push_back((*parent_node).control_input);
-        piecewise_path[piecewise_path.size()-1].push_back((*parent_node).is_forward);
-        parent_node = (*parent_node).parent_node;
-    }
-    piecewise_path.push_back((*parent_node).control_input);
+    if(path_found){
+        std::cout << "A path was found!" << std::endl;
 
-    std::reverse(piecewise_path.begin(),piecewise_path.end());
+        Node* parent_node = goal_node;
+
+        int tracking_direction_counter = 0;
+        while(!(*parent_node).start){
+            piecewise_path.push_back((*parent_node).control_input);
+            piecewise_path[piecewise_path.size()-1].push_back((*parent_node).is_forward);
+            parent_node = (*parent_node).parent_node;
+        }
+        piecewise_path.push_back((*parent_node).control_input);
+
+        std::reverse(piecewise_path.begin(),piecewise_path.end());
+
+
+    }
+    else{
+        // Pick a random node from the tree and backtrack till first node
+        Node* random_node = pick_random_node_from_tree(tree);
+        // Node* random_node = tree.begin();
+        Node* parent_node = random_node;
+
+        int tracking_direction_counter = 0;
+        while(!(*parent_node).start){
+            piecewise_path.push_back((*parent_node).control_input);
+            piecewise_path[piecewise_path.size()-1].push_back((*parent_node).is_forward);
+            parent_node = (*parent_node).parent_node;
+        }
+        piecewise_path.push_back((*parent_node).control_input);
+
+        std::reverse(piecewise_path.begin(),piecewise_path.end());
+    }
+
+
+
 
     // for(int i=1; i<piecewise_path.size(); i++){
     //     piecewise_path[i].push_back(tracking_direction[i-1]);
@@ -484,8 +536,8 @@ int main(){
     get_tractor_axle_center(q_init);
 
     std::vector<double> q_goal(6,0);
-    q_goal[0] = 10.0;
-    q_goal[1] = 10.0;
+    q_goal[0] = 30.0;
+    q_goal[1] = 60.0;
     q_goal[2] = M_PI_2;
     q_goal[3] = M_PI;
     get_tractor_axle_center(q_goal);
