@@ -1,19 +1,13 @@
 from icecream import ic
 import argparse
 import re
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
 from PIL import Image
 import numpy as np
-from scipy.spatial import ConvexHull
 import cv2
-
-
-
     
 def readVertices():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--map_file", help="filepath with solution", type=str, default="map1.txt")
+    parser.add_argument("--map_file", help="filepath with solution", type=str, default="vertices.txt")
     args = parser.parse_args()
 
     polygons = []
@@ -66,14 +60,20 @@ def img_toGrid(img,height,width,res):
 
 if __name__ == "__main__":
 
+    #basically image is the 
     res=0.05
-    vertices = np.array([[40,40],[65,40],[50,75]])
+    world_height=100 # in meters
+    world_width=100 # in meters
+
+
+    vertices = readVertices()[0]
 
     vertices=vertices/res
 
     # Define the width and height of the image
-    width = int(100*(1.0/res))
-    height = int(100*(1.0/res))
+    width = int(world_width*(1.0/res))
+    height = int(world_height*(1.0/res))
+
 
     # Create an empty image with the desired width and height
     img = np.zeros((height, width, 3), dtype=np.uint8)
