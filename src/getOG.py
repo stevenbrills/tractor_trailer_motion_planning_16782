@@ -5,49 +5,67 @@ from PIL import Image
 import numpy as np
 import cv2
     
-def readVertices():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--map_file", help="filepath with solution", type=str, default="mapinfo.txt")
-    args = parser.parse_args()
+def read_file(file_name):
+    # Initialize variables for the obstacles, height, width, and resolution
+    obstacles = []
+    height = None
+    width = None
+    resolution = None
 
-    polygons = []
-    lin_num = 0
-    with open(args.map_file) as f:
-        lines = f.readlines()
-        for line in lines:
-            if lin_num == 0:
-                vertices = line.split(" ")
-                p = []
-                for v in vertices:
-                    sub1 = "("
-                    sub2 = ","
-                    s=str(re.escape(sub1))
-                    e=str(re.escape(sub2))
-                    # printing result
-                    x_coord=re.findall(s+"(.*)"+e,v)[0]
-                    x = float(x_coord)
-                    sub3 = ")"
-                    sub3_esc = str(re.escape(sub3))
-                    y_coord = re.findall(e+"(.*)"+sub3_esc,v)[0]
-                    y = float(y_coord)
-                    p.append([x,y])
-                p = np.array(p)
-                polygons.append(p)
-                lin_num += 1
+    # Open the file for reading
+    with open(file_name, 'r') as f:
+        # Read the file line by line
+        for line in f:
+            # Split the line into words
+            words = line.split()
+            ic(words)
+
+            if words == []:
+                break
+
+            if words[0] == 'obstacles':
+                
+                line = next(f)
+                words=line.split()
+                # Read the vertices until we reach the next keyword
+                while words[0] != 'height':
+
+                    words = line.split(" ")
+
+                    p = []
+                    for v in words:
+                        sub1 = "("
+                        sub2 = ","
+                        s=str(re.escape(sub1))
+                        e=str(re.escape(sub2))
+                        # printing result
+                        x_coord=re.findall(s+"(.*)"+e,v)[0]
+                        x = float(x_coord)
+                        sub3 = ")"
+                        sub3_esc = str(re.escape(sub3))
+                        y_coord = re.findall(e+"(.*)"+sub3_esc,v)[0]
+                        y = float(y_coord)
+                        p.append([x,y])
+                    obstacles.append(p)
+                    
+                    line = next(f)
+                    words=line.split()
+                    if words[0] == 'height': 
+                        height = float(words[1])
             
-            elif (lin_num == 1):
-                world_height = float(line.split(" ")[1])
-                lin_num += 1
+            # If the first word is 'width', this is the width of the grid
+            elif words[0] == 'width':
+                # Parse the width from the second word
+                width = float(words[1])
 
-            elif (lin_num == 2):
-                world_width = float(line.split(" ")[1])
-                lin_num += 1
+            # If the first word is 'resolution', this is the resolution of the grid
+            elif words[0] == 'resolution':
+                # Parse the resolution from the second word
+                resolution = float(words[1])
 
-            elif (lin_num == 3):
-                res = float(line.split(" ")[1])
-                lin_num += 1
+    # Return the obstacles, height, width, and resolution as a tuple
+    return obstacles, height, width, resolution
 
-    return polygons[0], world_width,world_height, res
 
 def img_toGrid(img,height,width):
     img = Image.open(img).convert('L')
@@ -71,10 +89,8 @@ def img_toGrid(img,height,width):
     np.savetxt('OG.txt', grid, fmt='%d')
 
 if __name__ == "__main__":
-    vertices, world_width,world_height, res = readVertices()
+    vertices_list, world_height,world_width, res = read_file('mapinfo.txt')
    
-    vertices=vertices/res
-
     # Define the width and height of the image
     width = int(world_width*(1.0/res))
     height = int(world_height*(1.0/res))
@@ -86,12 +102,14 @@ if __name__ == "__main__":
     img.fill(255)
 
     # Create a list of the polygon vertices as integers
-    int_vertices = vertices.astype(int)
-
-    # Create the polygon
-    polygon = cv2.convexHull(int_vertices)
-
-    cv2.fillConvexPoly(img, polygon, (0, 0, 0))
+    for vertices in vertices_list:
+        print(vertices)
+        vertices = np.array(vertices)
+        vertices=vertices/res
+        int_vertices = vertices.astype(int)
+        # Create the polygon
+        polygon = cv2.convexHull(int_vertices)
+        cv2.fillConvexPoly(img, polygon, (0, 0, 0))
 
     img = np.flipud(img)
     # Save the image to a file
