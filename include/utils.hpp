@@ -46,12 +46,18 @@ tuple<double*, int, int> loadMap(string filepath) {
 	////// Go through file and add to m_occupancy
 	double* map = new double[height*width];
 
+	int while_counter = 0;
+
 	double cx, cy, cz;
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
 			char c;
 			do {
+				while_counter++;
+				// std::cout << (fscanf(f, "%c", &c)) << std::endl;
 				if (fscanf(f, "%c", &c) != 1) {
+					std::cout << while_counter << std::endl;
+					// std::cout << (fscanf(f, "%c", &c) != 1) << std::endl;
 					throw runtime_error("Invalid parsing individual map data");
 				}
 			} while (isspace(c));

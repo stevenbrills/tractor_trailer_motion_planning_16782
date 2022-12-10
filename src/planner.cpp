@@ -772,7 +772,7 @@ int main(){
     // test_find_nearest_neighbor();
 
     // Load map from text file
-    std::tie(world_map, x_size, y_size) = loadMap("/home/steven/CMU/planning_project/maps/map1.txt");
+    std::tie(world_map, x_size, y_size) = loadMap("/home/steven/CMU/planning_project/maps/grid.txt");
     planner(q_init, q_goal);
     return 0;
 
