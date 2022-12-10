@@ -7,7 +7,7 @@ import cv2
     
 def readVertices():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--map_file", help="filepath with solution", type=str, default="vertices.txt")
+    parser.add_argument("--map_file", help="filepath with solution", type=str, default="mapinfo.txt")
     args = parser.parse_args()
 
     polygons = []
@@ -34,10 +34,22 @@ def readVertices():
                 p = np.array(p)
                 polygons.append(p)
                 lin_num += 1
+            
+            elif (lin_num == 1):
+                world_height = float(line.split(" ")[1])
+                lin_num += 1
 
-    return polygons
+            elif (lin_num == 2):
+                world_width = float(line.split(" ")[1])
+                lin_num += 1
 
-def img_toGrid(img,height,width,res):
+            elif (lin_num == 3):
+                res = float(line.split(" ")[1])
+                lin_num += 1
+
+    return polygons[0], world_width,world_height, res
+
+def img_toGrid(img,height,width):
     img = Image.open(img).convert('L')
 
     # Define the width and height of the occupancy grid
@@ -56,24 +68,16 @@ def img_toGrid(img,height,width,res):
     grid[grid >= 128] = 0
 
     # Save the occupancy grid as a text file
-    np.savetxt('grid.txt', grid, fmt='%d')
+    np.savetxt('OG.txt', grid, fmt='%d')
 
 if __name__ == "__main__":
-
-    #basically image is the 
-    res=0.05
-    world_height=100 # in meters
-    world_width=100 # in meters
-
-
-    vertices = readVertices()[0]
-
+    vertices, world_width,world_height, res = readVertices()
+   
     vertices=vertices/res
 
     # Define the width and height of the image
     width = int(world_width*(1.0/res))
     height = int(world_height*(1.0/res))
-
 
     # Create an empty image with the desired width and height
     img = np.zeros((height, width, 3), dtype=np.uint8)
@@ -93,9 +97,6 @@ if __name__ == "__main__":
     # Save the image to a file
     cv2.imwrite('polygon.png', img)
 
-    # open the images and save this image as an array in a text file
-    # np.array(img).tofile('polygon.txt')
-
-    img_toGrid('polygon.png',height-1,width-1,res)
+    img_toGrid('polygon.png',height,width)
    
 
