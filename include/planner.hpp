@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include "collision_check.hpp"
 
 #define TRACTOR_WHEELBASE 0.3
 #define TRACTOR_HITCH_OFFSET 0.2
@@ -50,6 +51,16 @@ struct NodePtrComparator{
         return (*lhs).q == (*rhs).q;
     }
 };
+
+std::vector<std::vector<double>> segment_simulator(
+    std::vector<double> q_init,
+    std::vector<std::vector<double>> segment,
+    const bool is_forward,
+    CollisionCheck& cc,
+    double* map,
+    const int& x_size,
+    const int& y_size
+);
 
 std::vector<std::vector<double>> segment_simulator(
     std::vector<double> q_init,

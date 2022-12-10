@@ -1,4 +1,4 @@
-#include "planner.h"
+#include "planner.hpp"
 #include <vector>
 #include <random>
 #include <unordered_set>
@@ -8,6 +8,8 @@
 #include <fstream>
 #include <stdexcept>
 #include "matplotlibcpp.h"
+#include "utils.hpp"
+
 #define SAMPLING_TRIALS 5000
 double map_side = 105;
 // double map_y = 105;
@@ -376,6 +378,224 @@ std::vector<std::vector<double>> planner(
     return piecewise_path;
 }
 
+// Overloaded function that takes in a collision checker object, world map, and map dimensions
+std::vector<std::vector<double>> planner(
+    const std::vector<double> q_init,
+    const std::vector<double> q_goal,
+    CollisionCheck& cc,
+    double* map,
+    const int& x_size,
+    const int& y_size
+){
+
+    // Number of sampling attempts max
+    int sampling_trials = SAMPLING_TRIALS;
+
+    // Segment tracking direction boolean vector
+    // std::vector<bool> tracking_direction;
+
+    // Create the first node object which pairs q_init to initial control point
+    Node* InitialNode = new Node;
+    InitialNode->q = q_init;
+    InitialNode->control_input[0] = q_init[0];
+    InitialNode->control_input[1] = q_init[1];
+    InitialNode->cost2cum = 0; 
+    InitialNode->parent_node = nullptr;
+    InitialNode->start = true;
+
+    std::vector<std::vector<double>> expansion_segment(2,std::vector<double>(2,0));
+    std::vector<double> x,y;
+    std::vector<double> node_x,node_y;
+    std::vector<double> parent_x,parent_y;
+    // Store tree in unordered set
+    std::unordered_set<Node*, NodePtrHasher, NodePtrComparator> tree;
+    tree.insert(InitialNode);
+
+    Node* goal_node = new Node;
+
+    // Flag for found path termination
+    bool path_found = false;
+
+    int sampling_counter=0;
+    // Loop for sampling_trials number of times
+    for(int i=0; i<sampling_trials; i++){
+
+        // if(sampling_counter==1){
+        //     break;
+        // }
+        sampling_counter++;
+        std::cout << "------------------------------------" << std::endl;
+        std::cout<<"sampling trial::::::::::::::"<<i<<std::endl;
+        std::vector<double> random_control_sample(2,0);
+        sample_control_point(random_control_sample);
+        
+        // Find nearest neighbor using euclidean distance
+        auto result_pair = find_nearest_neighbor(tree, random_control_sample);
+        std::cout<<"Nearest neighbor found"<<result_pair.first->q[0]<<std::endl;
+        std::cout << "Direction of travel: " << static_cast<bool>(result_pair.second) << std::endl;
+        // tracking_direction.push_back(result_pair.second);
+
+        if (std::isnan(result_pair.first->q[0])){
+
+            std::cout << "The node that was found is nan" << std::endl;
+            for(double state_val : result_pair.first->q){
+                std::cout << state_val << std::endl;
+            }
+
+        }
+
+        std::cout << "Random sample before clipping X: " << random_control_sample[0] << std::endl;
+        std::cout << "Random sample before clipping Y: " << random_control_sample[1] << std::endl;
+        // If the nearest neighbor is too close, clip the control point by epsilon
+        double euc_dist_bw_control_pts = get_euclidean_distance(result_pair.first->control_input, random_control_sample);
+        if (euc_dist_bw_control_pts > EPSILON){
+            random_control_sample[0] = ((random_control_sample[0]-result_pair.first->control_input[0])/euc_dist_bw_control_pts)*EPSILON + result_pair.first->control_input[0];
+            random_control_sample[1] = ((random_control_sample[1]-result_pair.first->control_input[1])/euc_dist_bw_control_pts)*EPSILON + result_pair.first->control_input[1];
+        }
+
+        std::cout << "Nearest Neighbor Control Input X: " << result_pair.first->control_input[0] << std::endl;
+        std::cout << "Nearest Neighbor Control Input Y: " << result_pair.first->control_input[1] << std::endl;
+        std::cout << "Random sample X: " << random_control_sample[0] << std::endl;
+        std::cout << "Random sample Y: " << random_control_sample[1] << std::endl;
+
+
+        // Create segment to expand
+        expansion_segment[0] = (*(result_pair.first)).control_input;
+        expansion_segment[1] = random_control_sample;
+
+
+        // Connect sample to control point of nearest neighbor
+        // Expand the state/nodetree
+        // For this test implementation, forget about obstacle and collision checking
+        auto trajectory = segment_simulator((*result_pair.first).q, expansion_segment, result_pair.second, cc, map, x_size, y_size);
+        // std::cout << "Last state from simulated trajectory X: " << trajectory[trajectory.size()-1][0] << std::endl;
+        std::cout << "Size of trajectory: " << trajectory.size() << std::endl;
+        if(trajectory.size() == 0) continue;
+
+        // Check if the node is within the goal region tolerance, if yes break
+        if(check_goal_thresholds(trajectory[trajectory.size()-1], q_goal)){
+            goal_node->q = trajectory[trajectory.size()-1];
+            goal_node->control_input = random_control_sample;
+            goal_node->parent_node = result_pair.first;
+            goal_node->is_forward = result_pair.second;
+            tree.insert(goal_node);
+            path_found = true;
+            std::cout << "Goal X: " << goal_node->q[0] << "   And Goal Y: " << goal_node->q[1] << std::endl;
+            break;
+        }
+
+
+        Node* new_node = new Node;
+        new_node->q = trajectory[trajectory.size()-1];
+        new_node->control_input = random_control_sample;
+        new_node->parent_node = result_pair.first;
+        new_node->is_forward = result_pair.second;
+
+        tree.insert(new_node);
+        x.push_back(new_node->q[0]);
+        y.push_back(new_node->q[1]);
+        parent_x.push_back(new_node->parent_node->q[0]);
+        parent_y.push_back(new_node->parent_node->q[1]);
+        std::cout<<"Number of nodes in the tree: "<<tree.size()<<std::endl;
+        
+    }
+    std::cout<<"Tree size: "<<tree.size()<<std::endl;
+
+    std::vector<std::vector<double>> piecewise_path;
+
+    if(path_found){
+        std::cout << "A path was found!" << std::endl;
+
+        Node* parent_node = goal_node;
+        std::cout << "Goal X: " << goal_node->q[0] << "   And Goal Y: " << goal_node->q[1] << std::endl;
+
+        int tracking_direction_counter = 0;
+        while(!(*parent_node).start){
+            piecewise_path.push_back((*parent_node).control_input);
+            piecewise_path[piecewise_path.size()-1].push_back((*parent_node).is_forward);
+            parent_node = (*parent_node).parent_node;
+        }
+        piecewise_path.push_back((*parent_node).control_input);
+
+        std::reverse(piecewise_path.begin(),piecewise_path.end());
+
+
+    }
+    else{
+        // Pick a random node from the tree and backtrack till first node
+        Node* random_node = pick_random_node_from_tree(tree);
+        // Node* random_node = tree.begin();
+        Node* parent_node = random_node;
+
+        int tracking_direction_counter = 0;
+        while(!(*parent_node).start){
+            piecewise_path.push_back((*parent_node).control_input);
+            piecewise_path[piecewise_path.size()-1].push_back((*parent_node).is_forward);
+            parent_node = (*parent_node).parent_node;
+        }
+        piecewise_path.push_back((*parent_node).control_input);
+
+        std::reverse(piecewise_path.begin(),piecewise_path.end());
+    }
+
+
+
+
+    // for(int i=1; i<piecewise_path.size(); i++){
+    //     piecewise_path[i].push_back(tracking_direction[i-1]);
+    // }
+
+    auto final_trajectory = forward_simulator(q_init, piecewise_path);
+
+    // Save the trajectory into a file
+	std::ofstream planned_trajectory;
+	planned_trajectory.open("../output/PlannedTrajectory.txt", std::ios::trunc); // Creates new or replaces existing file
+	if (!planned_trajectory.is_open()) {
+		throw std::runtime_error("Cannot open file");
+	}
+	planned_trajectory << "This is a test trajectory computed for unit testing" << std::endl; // Description
+
+    // Write tractor-trailer physical parameters into the file	planned_trajectory << "Forward lookahead radius: " << std::endl;
+    planned_trajectory << FORWARD_LOOKAHEAD_DISTANCE << std::endl;
+    planned_trajectory << "Backward lookahead radius: " << BACKWARD_LOOKAHEAD_DISTANCE << std::endl;
+    planned_trajectory << "Tractor Wheelbase: " << TRACTOR_WHEELBASE << std::endl;
+    planned_trajectory << "Trailer Wheelbase: " << TRAILER_WHEELBASE << std::endl;
+    planned_trajectory << "Tractor hitch offset: " << TRACTOR_HITCH_OFFSET << std::endl;
+    planned_trajectory << "Velocity" << VELOCITY << std::endl;
+    // Tractor and Trailer Parameters
+
+    planned_trajectory << std::endl;
+
+    planned_trajectory << "Piecewise Linear Path" << std::endl;
+
+    for (auto& segment : piecewise_path){
+        planned_trajectory << segment[0] << ", " << segment[1] << std::endl;
+    }
+
+    for (auto& state : final_trajectory){
+        planned_trajectory << state[0] << " " << state[1] << " " << state[2] << " " <<
+        (M_PI - state[3]) << " " << state[4] << " " << state[5] << " " << state[6] << std::endl;
+    }
+
+	// planned_trajectory << "End of Trajectory Sequence" << std::endl;
+    // plot node and corresponding parent in the same plot
+    // plot straight line between node and parent
+    
+    for(int i=0;i<x.size();i++) {
+        plt::plot({parent_x[i], x[i]}, {parent_y[i], y[i]}, "k-");
+    }
+
+    
+    // plt::scatter(x, y, 100);
+    // plot the piecewise path
+    for (auto& segment : piecewise_path){
+        std::cout<<"Segment: "<<segment[0]<<", "<<segment[1]<<std::endl;
+    }
+    // show plots
+    plt::show();
+    return piecewise_path;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////// All test functions below this line ///////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -529,6 +749,9 @@ static void test_find_nearest_neighbor(){
 
 int main(){
 
+    double* world_map;
+	int x_size, y_size;
+
     std::vector<double> q_init(6,0);
     q_init[0] = 0.5;
     q_init[1] = 0.5;
@@ -547,6 +770,9 @@ int main(){
     // test_get_direction_fucntion();
     // test_sample_control_point();
     // test_find_nearest_neighbor();
+
+    // Load map from text file
+    std::tie(world_map, x_size, y_size) = loadMap("/home/steven/CMU/planning_project/maps/map1.txt");
     planner(q_init, q_goal);
     return 0;
 

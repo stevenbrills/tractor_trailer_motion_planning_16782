@@ -4,7 +4,7 @@
 #include <iostream>
 #include <ct/optcon/optcon.h>
 #include "matplotlibcpp.h"
-#include "planner.h"
+#include "planner.hpp"
 
 // Forward simulation function that takes initial configuration and a piecewise linear path
 // as an input

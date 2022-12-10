@@ -4,7 +4,7 @@
 #include <iostream>
 #include <ct/optcon/optcon.h>
 #include "matplotlibcpp.h"
-#include "planner.h"
+#include "planner.hpp"
 
 // Forward simulation function that takes initial configuration and a piecewise linear path
 // as an input
@@ -891,6 +891,201 @@ std::vector<std::vector<double>> segment_simulator(
     return trajectory;
 }
 
+
+// Overloaded function for segment simulator that takes in a collision checker object
+std::vector<std::vector<double>> segment_simulator(
+    std::vector<double> q_init,
+    std::vector<std::vector<double>> segment,
+    const bool is_forward,
+    CollisionCheck& cc,
+    double* map,
+    const int& x_size,
+    const int& y_size
+){
+
+    // Simulation time step
+    double timestep = 0.001;
+
+    // Collision checking parameters
+    bool in_collision = false;
+    double collision_check_distance_interval = 0.05;
+    int collision_check_steps_interval = (int)(collision_check_distance_interval/(velocity*timestep));
+
+    std::cout << "Received segment start X: " << segment[0][0] << std::endl;
+    std::cout << "Received segment start Y: " << segment[0][1] << std::endl;
+    std::cout << "Received segment goal X: " << segment[1][0] << std::endl;
+    std::cout << "Received segment goal Y: " << segment[1][1] << std::endl;
+    std::cout << "Received direction of travel: " << is_forward << std::endl;
+
+
+    // Set velocity sign based on direction
+    if(is_forward){
+        velocity = fabs(velocity);
+    }
+    else{
+        velocity = -1*fabs(velocity);
+    }
+
+    // Initialize variables for simulation
+    double beta_desired;
+    double beta_e;
+    double alpha_e;
+    double alpha;
+    std::vector<double> q_next;
+
+
+    // Create the vector of vectors which stores the trajectory
+    std::vector<std::vector<double>> trajectory;
+
+    // Constants
+    float beta_prop_gain = 0;
+
+    // Check if inputs are valid
+    if ((segment.size()<2) || (segment.size()>2)){
+        throw std::runtime_error("Size of segment in segmentwise simulator is less than or greater than 2 which is invalid. Size should exactly equal two! Segment must be defined by a pair of points.");
+    }
+
+    // Initialize the intersection point to be at the center of the rear axle, a controlled junk value
+    std::vector<double> intersection_point{q_init[0], q_init[1]};
+
+    // Set the current state to the initial state of the trailer
+    std::vector<double> q_current=q_init;
+
+    // Run the simulation till the intersection point of the look-ahead circle and piecewise linear path
+    // reaches the last point along the piecewise linear path
+
+    bool found_intersection_flag=true;
+
+    int while_loop_counter = 0;
+
+    while(
+        !(check_double_equal(intersection_point[0], segment[segment.size()-1][0]) &&
+    check_double_equal(intersection_point[1], segment[segment.size()-1][1]))
+    ){
+
+        // std::cout << "Simulating" << std::endl;
+
+        // For every line segment in the piecewise linear path, search for intersection points
+        // Find the intersection points of the lookahead circle and piecewise linear path
+        found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
+
+        // If the new segment starts and the intersection cannot be found (precision issues for double and a result of 
+        // termination critera of last segment), inflate the lookaheads by 1%
+        if(while_loop_counter<=200 && (!found_intersection_flag)){
+            std::cout << "Inflation required!" << std::endl;
+            if(is_forward){
+                forward_lookahead_radius = forward_lookahead_radius*1.01;
+                found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
+                forward_lookahead_radius = forward_lookahead_radius/1.01;
+            }
+            else{
+                backward_lookahead_radius = backward_lookahead_radius*1.05;
+                // std::cout << "Inflated backward lookahead radius: " << backward_lookahead_radius << std::endl;
+                // std::cout << "Current trailer X: " << q_current[0] << "Current Trailer Y: " << q_current[1] << std::endl;
+                found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
+                // std::cout << "Dist to segment start: " << sqrt(pow(segment[0][0] - q_current[0],2)+pow(segment[0][1] - q_current[1],2)) << std::endl;
+                backward_lookahead_radius = backward_lookahead_radius/1.05;
+            }
+        }
+
+        // if((while_loop_counter%20000)==0){
+        //     std::cout << "Intersection X: " << intersection_point[0] << ", Intersection Y: " << intersection_point[1] << "   ";
+        // }
+        // if(while_loop_counter==0){
+        //     // Need to add condition that prevents intersection points outside the segment
+        //     std::cout << "While loop counter: " << while_loop_counter << std::endl;
+        //     std::cout << "Intersection X: " << intersection_point[0] << ", Intersection Y: " << intersection_point[1] << std::endl;
+        // }
+        // std::cout << "Was an intersection found?: " << found_intersection_flag << std::endl;
+
+        if(!found_intersection_flag){
+            break;
+        }
+
+        //TODO: Add a check which evaluates whether the intersection point at this time actually lies on one of the look-ahead
+        // circles. If it doesn't, then the get_intersection function has not returned a proper intersection point, or it has
+        // not updated the intersection point from the initalization of the intersection point with the trailers axle center
+
+
+        // Here, use the forward/reverse flag in the piece-wise linear input to compute control inputs
+        if(!is_forward){
+
+            // beta desired works only for the reversing simulation now, need to create a different approach for the forward motion
+            beta_desired = get_beta_desired(q_current, intersection_point, is_forward);
+            // if((while_loop_counter%20000)==0){
+            //     std::cout << "Beta desired: " << beta_desired << "   beta_now: " << q_current[3] << "   ";
+            // }
+
+            // Add the proportional gain beta
+            beta_e = beta_desired + beta_prop_gain*(beta_desired - q_current[3]);
+
+            // Get the value of alpha_e from beta_e using the pre-compensation link
+            alpha_e = get_alpha_e(beta_desired);
+            // if((while_loop_counter%20000)==0){
+            //     std::cout << "Alpha_e: " << alpha_e << "    ";
+            // }
+
+            // Use alpha_e to compute steering angle input
+            alpha = clip_to_alpha_e(wrap_angle(alpha_e - get_gain(beta_e, alpha_e, velocity)*(q_current[3] - beta_e)));
+            // if((while_loop_counter%20000)==0){
+            //     // std::cout << "Alpha: " << alpha << std::endl;
+            // }
+
+            // Integrate motion through 
+            q_next = rk4_integrator(alpha, velocity, q_current, timestep);
+
+        }
+        else{
+
+            // Use alpha_e to compute steering angle input
+            alpha = clip_to_alpha_e(get_alpha_for_forward_motion(intersection_point, q_current));
+            alpha = 1*alpha;
+
+            // std::cout << "In forward and alpha is: " << alpha << std::endl;
+
+            if (std::isnan(alpha)){
+                std::cout << "Alpha was nan" << std::endl;
+            }
+
+            // Integrate motion through 
+            q_next = rk4_integrator(alpha, velocity, q_current, timestep);
+
+        }
+
+        // if((while_loop_counter%1)==0){
+        //     std::cout << "State X: " << q_next[0] << ", State Y: " << q_next[1] << std::endl;
+        // }
+
+        if(while_loop_counter==collision_check_steps_interval){
+            if(cc.collision_check(q_next[0], q_next[1], q_next[2], (M_PI - q_next[3]), map, x_size, y_size)){
+                std::vector<std::vector<double>> empty_trajectory;
+                return empty_trajectory;
+            }
+        }
+
+        q_current = q_next;
+
+        // Append the next state into the trajectory
+        q_next.push_back(alpha);
+        trajectory.push_back(q_next);
+
+        while_loop_counter++;
+    }
+
+    std::cout << "Simulation complete!" << std::endl;
+    if(!found_intersection_flag){
+        std::cout << "Simulation cut off since no intersection point found" << std::endl;
+        // std::cout << "X value of last q_next state" << q_next[0] << std::endl;
+        // std::cout << "Terminated intersection point is"
+    }
+    // std::cout<<"Trajectory size: "<<trajectory.size()<<std::endl;
+    // if(trajectory.size()==0){
+    //     std::cout << "Trajectory size is zero!" << std::endl;
+    //     std::cout << "Segment X0: " << segment[0][0] << "Segment Y0: " << segment[0][1] << std::endl;
+    //     std::cout << "Segment X1: " << segment[1][0] << "Segment Y1: " << segment[1][1] << std::endl;
+    // }
+    return trajectory;
+}
 
 std::vector<std::vector<double>> forward_simulator(
     std::vector<double> q_init,

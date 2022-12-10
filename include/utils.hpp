@@ -1,3 +1,6 @@
+#ifndef UTILS_PLANNER_HEADER_GUARD
+#define UTILS_PLANNER_HEADER_GUARD
+
 #include <math.h>
 #include <random>
 #include <vector>
@@ -62,3 +65,5 @@ tuple<double*, int, int> loadMap(string filepath) {
 	fclose(f);
 	return make_tuple(map, width, height);
 }
+
+#endif

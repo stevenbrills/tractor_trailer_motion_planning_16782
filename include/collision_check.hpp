@@ -1,5 +1,4 @@
 #include <iostream>
-#include "planner.h"
 
 #define TRACTOR_WIDTH (0.0)
 #define L1 (1.0)
