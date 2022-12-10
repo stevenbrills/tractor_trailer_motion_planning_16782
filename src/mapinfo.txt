@@ -5,4 +5,4 @@ obstacles
 (80,10) (80,20) (90,10) (90,20)
 height 100
 width 100
-resolution 1
+resolution 0.05
