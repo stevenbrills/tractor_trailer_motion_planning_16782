@@ -146,7 +146,7 @@ static bool find_intersection_point(
         }
         // else{
         // std::cout << "No real roots: " << "id_start: " << id_start << "id_goal: " << id_goal << std::endl;
-        std::cout << "No real roots: " << std::endl;
+        // std::cout << "No real roots: " << std::endl;
         return false;
 
         // }
@@ -220,7 +220,7 @@ static bool find_intersection_point(
 
         }
 
-        std::cout << "No real roots" << std::endl;
+        // std::cout << "No real roots" << std::endl;
         return false;
 
     }
@@ -796,7 +796,7 @@ std::vector<std::vector<double>> segment_simulator(
         // If the new segment starts and the intersection cannot be found (precision issues for double and a result of 
         // termination critera of last segment), inflate the lookaheads by 1%
         if(while_loop_counter<=LOOKAHEAD_INFLATION_STEPS && (!found_intersection_flag)){
-            std::cout << "Inflation required!" << std::endl;
+            // std::cout << "Inflation required!" << std::endl;
             if(is_forward){
                 forward_lookahead_radius = forward_lookahead_radius*1.01;
                 found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
@@ -986,7 +986,7 @@ std::vector<std::vector<double>> segment_simulator(
         // If the new segment starts and the intersection cannot be found (precision issues for double and a result of 
         // termination critera of last segment), inflate the lookaheads by 1%
         if(while_loop_counter<=LOOKAHEAD_INFLATION_STEPS && (!found_intersection_flag)){
-            std::cout << "Inflation required!" << std::endl;
+            // std::cout << "Inflation required!" << std::endl;
             if(is_forward){
                 forward_lookahead_radius = forward_lookahead_radius*1.01;
                 found_intersection_flag = get_intersection_point_along_piecewise_linear(q_current, segment, is_forward, intersection_point);
@@ -1002,9 +1002,9 @@ std::vector<std::vector<double>> segment_simulator(
             }
         }
 
-        if((while_loop_counter%20000)==0){
-            std::cout << "Intersection X: " << intersection_point[0] << ", Intersection Y: " << intersection_point[1] << std::endl; //<< "   ";
-        }
+        // if((while_loop_counter%20000)==0){
+        //     std::cout << "Intersection X: " << intersection_point[0] << ", Intersection Y: " << intersection_point[1] << std::endl; //<< "   ";
+        // }
         // if(while_loop_counter==0){
         //     // Need to add condition that prevents intersection points outside the segment
         //     std::cout << "While loop counter: " << while_loop_counter << std::endl;
@@ -1071,7 +1071,7 @@ std::vector<std::vector<double>> segment_simulator(
         // }
 
         if((while_loop_counter%collision_check_steps_interval)==0){
-            std::cout << "Checking for collision" << std::endl;
+            // std::cout << "Checking for collision" << std::endl;
             if(cc.collision_check(q_next[0], q_next[1], q_next[2], (M_PI - q_next[3]), map, x_size, y_size)==1){
                 std::vector<std::vector<double>> empty_trajectory;
                 std::cout << "Vehicle in collision!" << std::endl;

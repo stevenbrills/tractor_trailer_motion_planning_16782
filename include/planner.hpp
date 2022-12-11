@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include "collision_check.hpp"
+#include "cc.hpp"
 
 #define TRACTOR_WHEELBASE 0.3
 #define TRACTOR_HITCH_OFFSET 0.2
@@ -11,7 +11,7 @@
 #define FORWARD_LOOKAHEAD_DISTANCE 1.0
 #define BACKWARD_LOOKAHEAD_DISTANCE 2.0
 #define VELOCITY 0.2
-#define EPSILON 50
+#define EPSILON 5
 #define GOAL_XY_TOLERANCE 5
 
 struct Node{

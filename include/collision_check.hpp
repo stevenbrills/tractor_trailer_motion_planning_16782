@@ -2,7 +2,7 @@
 
 #define TRACTOR_WIDTH (0.2)
 #define L1 (1.0)
-#define L2 (1.0)
+#define L2 (0.8)
 #define BODY (0.0)
 #define DIAMETER (0.0)
 // #define map_width (100.0)
@@ -20,17 +20,18 @@ class CollisionCheck {
         double l_trailer;
         Eigen::Matrix3d tractor_transform;
         Eigen::Matrix3d trailer_transform;
-        Eigen::Matrix3d tractor_coords;
-        Eigen::Matrix3d trailer_coords;
+        Eigen::Matrix3Xd tractor_coords;
+        Eigen::Matrix3Xd trailer_coords;
 
         inline void computeTransformMatrices (double theta, double beta, int x, int y) {
             
-            trailer_transform << cos(theta), -sin(theta), x + L2/2*cos(theta),
-            sin(theta), cos(theta), y + L2/2*sin(theta),
+            trailer_transform << cos(theta), -sin(theta), x + l_trailer/2*cos(theta),
+            sin(theta), cos(theta), y + l_trailer/2*sin(theta),
             0, 0, 1;
-            tractor_transform << cos(theta+beta), -sin(theta+beta), x + L2*cos(theta) + l_tractor/2*cos(theta+beta),
-            sin(theta+beta), cos(theta+beta), y + L2*sin(theta) + l_tractor/2*sin(theta+beta),
+            tractor_transform << cos(theta+beta), -sin(theta+beta), x + l_trailer*cos(theta) + l_tractor/2*cos(theta+beta),
+            sin(theta+beta), cos(theta+beta), y + l_trailer*sin(theta) + l_tractor/2*sin(theta+beta),
             0, 0, 1;
+
         }
 
         inline void computeCoords() {
@@ -42,8 +43,8 @@ class CollisionCheck {
             Eigen::Matrix3Xd tractor_rect_coords(3,(steps_w+1)*(steps_l+1));
             for (int i = 0; i <= steps_l; i++) {
                 for (int j = 0; j < steps_w; j++) {
-                    tractor_rect_coords(0,i*(steps_w+1)+j) = -TRACTOR_WIDTH/2 + j*float(TRACTOR_WIDTH/steps_w);
-                    tractor_rect_coords(1,i*(steps_w+1)+j) = -l_tractor/2 + i*float(l_tractor/steps_l);
+                    tractor_rect_coords(0,i*(steps_w+1)+j) = l_tractor/2 - i*float(l_tractor/steps_l);
+                    tractor_rect_coords(1,i*(steps_w+1)+j) = TRACTOR_WIDTH/2 - j*float(TRACTOR_WIDTH/steps_w);
                     tractor_rect_coords(2,i*(steps_w+1)+j) = 1;
                 }
             }
@@ -55,14 +56,22 @@ class CollisionCheck {
 
             for (int i = 0; i <= steps_l; i++) {
                 for (int j = 0; j < steps_w; j++) {
-                    trailer_rect_coords(0,i*(steps_w+1)+j) = -TRACTOR_WIDTH/2 + j*float(TRACTOR_WIDTH/steps_w);
-                    trailer_rect_coords(1,i*(steps_w+1)+j) = -l_trailer/2 + i*float(l_trailer/steps_l);
+                    trailer_rect_coords(0,i*(steps_w+1)+j) = l_trailer/2 - i*float(l_trailer/steps_l);
+                    trailer_rect_coords(1,i*(steps_w+1)+j) = TRACTOR_WIDTH/2 - j*float(TRACTOR_WIDTH/steps_w);
                     trailer_rect_coords(2,i*(steps_w+1)+j) = 1;
                 }
             }
+            
+            // std::cout << "Tractor TF: " << tractor_transform.rows() << "X" << tractor_transform.cols() << std::endl;
+            // std::cout << "Tractor Coords TF: " << tractor_rect_coords.rows() << "X" << tractor_rect_coords.cols() << std::endl;
+            // std::cout << "Trailer TF: " << trailer_transform.rows() << "X" << trailer_transform.cols() << std::endl;
+            // std::cout << "Trailer Coords TF: " << trailer_rect_coords.rows() << "X" << trailer_rect_coords.cols() << std::endl;
 
-            tractor_coords = tractor_transform*tractor_coords;
-            trailer_coords = trailer_transform*trailer_coords;
+
+            tractor_coords = tractor_transform*tractor_rect_coords;
+            trailer_coords = trailer_transform*trailer_rect_coords;
+
+            // std::cout << "Finished mat mul" << std::endl;
         }
        
         void converWorldXYtoGridXY(float x, float y, int &grid_x, int &grid_y) {
@@ -97,6 +106,10 @@ class CollisionCheck {
             for (int i = 0; i < tractor_coords.cols(); i++) {
                 converWorldXYtoGridXY(tractor_coords(0,i), tractor_coords(1,i), grid_x, grid_y);
                 //check if the grid_x and grid_y are within the map bounds and if the point is in the obstacle space
+                // std::cout << "Grid X: " << grid_x << "     Grid Y: " << grid_y << std::endl;
+                // std::cout << "World map size: " << sizeof(world_map)/sizeof(world_map[0]) << std::endl;
+                // std::cout << "Going to access elements index: " << grid_x + grid_y*(int)(map_width/MAP_RESOLUTION) << std::endl;
+                // std::cout << "World value at grid_x and grid_y is: " << world_map[grid_x + grid_y*(int)(map_width/MAP_RESOLUTION)] << std::endl;
                 if (grid_x < 0 || grid_x >= (int)(map_width/MAP_RESOLUTION) || grid_y < 0 || grid_y >= (int)(map_height/MAP_RESOLUTION) || world_map[grid_x + grid_y*(int)(map_width/MAP_RESOLUTION)] > 0) {
                     collided = true;
                     std::cout<<"Collision detected at tractor point "<<tractor_coords(0,i)<<", "<<tractor_coords(1,i)<<"\n";

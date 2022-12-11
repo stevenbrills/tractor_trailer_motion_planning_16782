@@ -31,6 +31,7 @@ using std::endl;
 /// @param filepath 
 /// @return map, x_size, y_size
 tuple<double*, int, int> loadMap(string filepath) {
+	// std::cout << "In load map function" << std::endl;
 	std::FILE *f = fopen(filepath.c_str(), "r");
 	if (f) {
 	}
@@ -42,9 +43,13 @@ tuple<double*, int, int> loadMap(string filepath) {
 	if (fscanf(f, "height %d\nwidth %d\n", &height, &width) != 2) {
 		throw runtime_error("Invalid loadMap parsing map metadata");
 	}
+	// std::cout << "Height read: " << height << std::endl;
+	// std::cout << "Width read: " << width << std::endl;
+
 	
 	////// Go through file and add to m_occupancy
 	double* map = new double[height*width];
+	// std::cout << "In load map, world_map size: " << sizeof(map[1161000]) << std::endl;
 
 	int while_counter = 0;
 

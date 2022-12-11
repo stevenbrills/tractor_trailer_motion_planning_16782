@@ -10,7 +10,7 @@
 #include "matplotlibcpp.h"
 #include "utils.hpp"
 
-#define SAMPLING_TRIALS 10
+#define SAMPLING_TRIALS 5000
 double map_side = 105;
 // double map_y = 105;
 
@@ -351,7 +351,7 @@ std::vector<std::vector<double>> planner(
     planned_trajectory << "Piecewise Linear Path" << std::endl;
 
     for (auto& segment : piecewise_path){
-        planned_trajectory << segment[0] << ", " << segment[1] << std::endl;
+        planned_trajectory << segment[0] << " " << segment[1] << std::endl;
     }
 
     planned_trajectory << "Trajectory" << std::endl;
@@ -503,6 +503,12 @@ std::vector<std::vector<double>> planner(
     }
     std::cout<<"Tree size: "<<tree.size()<<std::endl;
 
+    for(int i=0;i<x.size();i++) {
+        plt::plot({parent_x[i], x[i]}, {parent_y[i], y[i]}, "k-");
+    }
+    plt::show();
+
+
     std::vector<std::vector<double>> piecewise_path;
 
     if(path_found){
@@ -571,7 +577,7 @@ std::vector<std::vector<double>> planner(
     planned_trajectory << "Piecewise Linear Path" << std::endl;
 
     for (auto& segment : piecewise_path){
-        planned_trajectory << segment[0] << ", " << segment[1] << std::endl;
+        planned_trajectory << segment[0] << " " << segment[1] << std::endl;
     }
 
     planned_trajectory << "Trajectory" << std::endl;
@@ -585,9 +591,7 @@ std::vector<std::vector<double>> planner(
     // plot node and corresponding parent in the same plot
     // plot straight line between node and parent
     
-    for(int i=0;i<x.size();i++) {
-        plt::plot({parent_x[i], x[i]}, {parent_y[i], y[i]}, "k-");
-    }
+
 
     
     // plt::scatter(x, y, 100);
@@ -595,9 +599,10 @@ std::vector<std::vector<double>> planner(
     for (auto& segment : piecewise_path){
         std::cout<<"Segment: "<<segment[0]<<", "<<segment[1]<<std::endl;
     }
-    // show plots
-    plt::show();
+
+
     return piecewise_path;
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -757,16 +762,16 @@ int main(){
 	int x_size, y_size;
 
     std::vector<double> q_init(6,0);
-    q_init[0] = 0.5;
-    q_init[1] = 0.5;
+    q_init[0] = 10;
+    q_init[1] = 50;
     q_init[2] = M_PI_2;
     // q_init[3] = 1*M_PI + -1*0.1;
     q_init[3] = M_PI;
     get_tractor_axle_center(q_init);
 
     std::vector<double> q_goal(6,0);
-    q_goal[0] = 30.0;
-    q_goal[1] = 60.0;
+    q_goal[0] = 90.0;
+    q_goal[1] = 10.0;
     q_goal[2] = M_PI_2;
     q_goal[3] = M_PI;
     get_tractor_axle_center(q_goal);
@@ -777,8 +782,11 @@ int main(){
 
     // Load map from text file
     std::tie(world_map, x_size, y_size) = loadMap("/home/steven/CMU/planning_project/maps/map2.txt");
-    double height = y_size*0.05;
-    double width = x_size*0.05;
+    // double height = y_size*0.05;
+    // double width = x_size*0.05;
+
+    double height = y_size;
+    double width = x_size;
     
     // Instantiate collision checker object
     CollisionCheck cc(TRACTOR_WHEELBASE, TRAILER_WHEELBASE, TRACTOR_HITCH_OFFSET);
