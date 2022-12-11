@@ -10,19 +10,26 @@
 #include "matplotlibcpp.h"
 #include "utils.hpp"
 
-#define SAMPLING_TRIALS 5000
+#define SAMPLING_TRIALS 50000
 double map_side = 105;
 // double map_y = 105;
 
 namespace plt = matplotlibcpp;
 static void sample_control_point(
-    std::vector<double>& random_sample
+    std::vector<double>& random_sample,const std::vector<double>& q_goal
 ){
     // Initialize mersenne twister object
     // std::mt19937 mt(std::random_device{}());
-    // static std::mt19937 mt(10);
-    static std::mt19937 mt(50);
+    static std::mt19937 mt(10);
+    // static std::mt19937 mt(50);
 
+    std::uniform_real_distribution<float> uniform_dist2(0, 1);
+    float random_number = uniform_dist2(mt);
+
+    if(random_number > 0.4){
+        random_sample = q_goal;
+        return;
+    }
 
 
     if(!(random_sample.size()==2)){
@@ -49,6 +56,9 @@ bool check_goal_thresholds(
 ){
 
     if(get_euclidean_distance(q, q_goal) < GOAL_XY_TOLERANCE){
+
+        //print the get_euclidean_distance(q, q_goal) value
+        std::cout << "****************get_euclidean_distance(q, q_goal) value:************** " << get_euclidean_distance(q, q_goal) << std::endl;
         return true;
     }
     return false;
@@ -209,7 +219,7 @@ std::vector<std::vector<double>> planner(
         std::cout << "------------------------------------" << std::endl;
         std::cout<<"sampling trial::::::::::::::"<<i<<std::endl;
         std::vector<double> random_control_sample(2,0);
-        sample_control_point(random_control_sample);
+        sample_control_point(random_control_sample, q_goal);
         
         // Find nearest neighbor using euclidean distance
         auto result_pair = find_nearest_neighbor(tree, random_control_sample);
@@ -429,7 +439,7 @@ std::vector<std::vector<double>> planner(
         std::cout << "------------------------------------" << std::endl;
         std::cout<<"sampling trial::::::::::::::"<<i<<std::endl;
         std::vector<double> random_control_sample(2,0);
-        sample_control_point(random_control_sample);
+        sample_control_point(random_control_sample, q_goal);
         
         // Find nearest neighbor using euclidean distance
         auto result_pair = find_nearest_neighbor(tree, random_control_sample);
@@ -654,27 +664,27 @@ static void test_get_direction_fucntion(){
 
 }
 
-static void test_sample_control_point(){
+static void test_sample_control_point(const std::vector<double>& q_goal){
 
     // Node* node;
     std::vector<double> control_sample(2,0);
 
-    sample_control_point(control_sample);
+    sample_control_point(control_sample, q_goal);
     std::cout << "-------------------------------------------------------------" << std::endl;
     std::cout << "Sampled Point X: " << control_sample[0] << "        Sampled Point Y: " << control_sample[1] << std::endl;
     std::cout << "-------------------------------------------------------------" << std::endl;
 
-    sample_control_point(control_sample);
+    sample_control_point(control_sample, q_goal);
     std::cout << "-------------------------------------------------------------" << std::endl;
     std::cout << "Sampled Point X: " << control_sample[0] << "        Sampled Point Y: " << control_sample[1] << std::endl;
     std::cout << "-------------------------------------------------------------" << std::endl;
 
-    sample_control_point(control_sample);
+    sample_control_point(control_sample, q_goal);
     std::cout << "-------------------------------------------------------------" << std::endl;
     std::cout << "Sampled Point X: " << control_sample[0] << "        Sampled Point Y: " << control_sample[1] << std::endl;
     std::cout << "-------------------------------------------------------------" << std::endl;
 
-    sample_control_point(control_sample);
+    sample_control_point(control_sample, q_goal);
     std::cout << "-------------------------------------------------------------" << std::endl;
     std::cout << "Sampled Point X: " << control_sample[0] << "        Sampled Point Y: " << control_sample[1] << std::endl;
     std::cout << "-------------------------------------------------------------" << std::endl;
@@ -763,7 +773,7 @@ int main(){
 
     std::vector<double> q_init(6,0);
     q_init[0] = 10;
-    q_init[1] = 50;
+    q_init[1] = 70;
     q_init[2] = M_PI_2;
     // q_init[3] = 1*M_PI + -1*0.1;
     q_init[3] = M_PI;
@@ -781,7 +791,7 @@ int main(){
     // test_find_nearest_neighbor();
 
     // Load map from text file
-    std::tie(world_map, x_size, y_size) = loadMap("/home/steven/CMU/planning_project/maps/map2.txt");
+    std::tie(world_map, x_size, y_size) = loadMap("/home/suraj/tractor_trailer_motion_planning_16782/maps/map2.txt");
     // double height = y_size*0.05;
     // double width = x_size*0.05;
 

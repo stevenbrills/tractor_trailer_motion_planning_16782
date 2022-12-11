@@ -4,7 +4,7 @@
 int main() {
     double* world_map;
 	int x_size, y_size;
-    std::tie(world_map, x_size, y_size) = loadMap("/home/steven/CMU/planning_project/maps/map2.txt");
+    std::tie(world_map, x_size, y_size) = loadMap("/home/suraj/tractor_trailer_motion_planning_16782/maps/map2.txt");
     // x_size = x_size*0.05;
     // y_size = y_size*0.05;
     // std::cout << "Size of world map in bytes: " << sizeof(world_map[1161000]) << std::endl;

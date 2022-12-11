@@ -5,6 +5,8 @@ from icecream import ic
 from matplotlib.animation import FuncAnimation, PillowWriter  # For gif
 from matplotlib.patches import Rectangle
 from matplotlib.patches import Polygon
+from scipy.spatial import ConvexHull
+
 import pdb # Use this for debugging python!
 matplotlib.use('Agg')
 import argparse
@@ -40,23 +42,6 @@ def readMap(mapfile):
     mapdata = mapdata.astype(int)
     return mapdata
 
-# def convertToPixels(x,y,theta,beta):
-#     tractor_coords = []
-#     trailer_coords = []
-#     theta = float(theta)
-#     beta = float(beta)
-#     steps=int(max(L1,L2)/MAP_RESOLUTION)
-#     for i in range(0, steps+1):
-#         x1 = int((x+i/steps*L2*np.cos(theta))/MAP_RESOLUTION)
-#         y1 = int((y+i/steps*L2*np.sin(theta))/MAP_RESOLUTION)
-#         trailer_coords.append([x1,y1])
-#         x2 = int((x+L2*np.cos(theta)+i/steps*L1*np.cos(theta+beta))/MAP_RESOLUTION)
-#         y2 = int((y+L2*np.sin(theta)+i/steps*L1*np.sin(theta+beta))/MAP_RESOLUTION)
-#         tractor_coords.append([x2,y2])
-
-#     ic(trailer_coords)
-#     ic(tractor_coords)  
-#     return tractor_coords, trailer_coords
 
 def calculateEndPoints(x,y,theta,beta):
     tract_length = L1+BODY
@@ -98,7 +83,24 @@ def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious, ax, po
     artists.append(plt.plot(x_trailer, y_trailer, color = 'blue', linewidth=8))
     artists.append(plt.plot(x_trac, y_tract, color = 'red', linewidth=8))
     for p in polygons:
-        patch = Polygon(p, facecolor = 'black', edgecolor = 'black', lw = 8, fill = True)
+        p=np.array(p)
+        hull = ConvexHull(p)
+
+        cent = np.mean(p, 0)
+        pts = []
+        for pt in p[hull.simplices]:
+            pts.append(pt[0].tolist())
+            pts.append(pt[1].tolist())
+
+        pts.sort(key=lambda p: np.arctan2(p[1] - cent[1],
+                                        p[0] - cent[0]))
+        pts = pts[0::2]  # Deleting duplicates
+        pts.insert(len(pts), pts[0])
+        k = 1.1
+        color = 'black'
+        poly = Polygon(k*(np.array(pts)- cent) + cent,facecolor=color, alpha=1)
+    
+        patch = poly
         artists.append(plt.gca().add_patch(patch))
     for k in range(1,len(piecewise_llinear_paths)):
         p1, p2 = [piecewise_llinear_paths[k-1][0], piecewise_llinear_paths[k][0]], [piecewise_llinear_paths[k-1][1], piecewise_llinear_paths[k][1]]
@@ -112,9 +114,9 @@ def createSingleFrame(i, tractor_coords, trailer_coords, includePrevious, ax, po
 
 def parseFiileandCreateArray():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--filename", help="file for trajectory", type=str, default="/home/steven/CMU/planning_project/output/PlannedTrajectory.txt")
-    parser.add_argument("--map_file", help="filepath with solution", type=str, default="/home/steven/CMU/planning_project/maps/map1.txt")
-    parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="/home/steven/CMU/planning_project/ouputs/planned_goal.gif", required=False)
+    parser.add_argument("--filename", help="file for trajectory", type=str, default="../output/PlannedTrajectory.txt")
+    parser.add_argument("--map_file", help="filepath with solution", type=str, default="../input/mapinfo.txt")
+    parser.add_argument("--gifFilepath", help="filepath for gif", type=str, default="../ouputs/planned_goal.gif", required=False)
     parser.add_argument("--fps", help="frames per second", type=int, default=20, required=False)
     parser.add_argument("--incPrev", help="include previous poses (1), else don't (0). Note this slows gif creation speed",
                                         type=int, default=0, required=False)
@@ -122,33 +124,50 @@ def parseFiileandCreateArray():
     args = parser.parse_args()
     assert(args.gifFilepath.endswith(".gif"))  # Make sure it ends with a .gif extension
     assert(args.incPrev == 0 or args.incPrev == 1)  # 0 is don't include, 1 is include
-
-    # map_int = []
+    
     polygons = []
-    lin_num = 0
-    with open(args.map_file) as f:
-        lines = f.readlines()
-        for line in lines:
-            if lin_num == 0:
-                vertices = line.split(" ")
-                p = []
-                for v in vertices:
-                    sub1 = "("
-                    sub2 = ","
-                    s=str(re.escape(sub1))
-                    e=str(re.escape(sub2))
-                    # printing result
-                    x_coord=re.findall(s+"(.*)"+e,v)[0]
-                    x = float(x_coord)
-                    sub3 = ")"
-                    sub3_esc = str(re.escape(sub3))
-                    y_coord = re.findall(e+"(.*)"+sub3_esc,v)[0]
-                    y = float(y_coord)
-                    p.append([x,y])
-                p = np.array(p)
-                polygons.append(p)
-                lin_num += 1
+ 
+    # Open the file for reading
+    with open(args.map_file, 'r') as f:
+        # Read the file line by line
+        for line in f:
+            # Split the line into words
+            words = line.split()
+            ic(words)
 
+            if words == []:
+                break
+
+            if words[0] == 'obstacles':
+                
+                line = next(f)
+                words=line.split()
+                # Read the vertices until we reach the next keyword
+                while words[0] != 'height':
+
+                    words = line.split(" ")
+
+                    p = []
+                    for v in words:
+                        sub1 = "("
+                        sub2 = ","
+                        s=str(re.escape(sub1))
+                        e=str(re.escape(sub2))
+                        # printing result
+                        x_coord=re.findall(s+"(.*)"+e,v)[0]
+                        x = float(x_coord)
+                        sub3 = ")"
+                        sub3_esc = str(re.escape(sub3))
+                        y_coord = re.findall(e+"(.*)"+sub3_esc,v)[0]
+                        y = float(y_coord)
+                        p.append([x,y])
+                    polygons.append(p)
+                    
+                    line = next(f)
+                    words=line.split()
+                    if words[0] == 'height': 
+                        break
+       
     path_reversible = []
     tractor_coords = []
     trailer_coords = []
