@@ -5,6 +5,7 @@
 #include <ct/optcon/optcon.h>
 #include "matplotlibcpp.h"
 #include "planner.hpp"
+#define LOOKAHEAD_INFLATION_STEPS 200
 
 // Forward simulation function that takes initial configuration and a piecewise linear path
 // as an input
@@ -576,6 +577,7 @@ std::vector<double> q_dot(
 
     // Special case when alpha equals zero
     if(alpha==0){
+        // std::cout << "OMG alpha is zero!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
         va = velocity;
         psi = 0;
         phi = M_PI_2 - (fabs(q_current[3]) - M_PI_2);
@@ -594,10 +596,21 @@ std::vector<double> q_dot(
 
     q_dot[0] = vb*cos(q_current[2]);
     q_dot[1] = vb*sin(q_current[2]);
-    q_dot[2] = velocity*((r2)/(r1*r3));
-    q_dot[3] = velocity*(((r2)/(r1*r3)) - (1/r1));
+    // q_dot[2] = velocity*((r2)/(r1*r3));
+    q_dot[2] = trailer_theta_dot;
+
+    // q_dot[3] = velocity*(((r2)/(r1*r3)) - (1/r1));
+    q_dot[3] = beta_dot;
+
 
     // std::cout << "q-dot called" << std::endl;
+
+    if(std::isnan(q_dot[2])){
+        std::cout << "r1" << r1 << std::endl;
+        std::cout << "r2" << r2 << std::endl;
+        std::cout << "r3" << r3 << std::endl;
+
+    }
 
     return q_dot;
 }
@@ -658,7 +671,7 @@ const double& timestep
     if(std::isnan(q_next[0])){
         std::cout << "The integrated step is nan!" << std::endl;
         std::cout << "The previous state x is: " << q_current[0] << std::endl;
-        std::cout << "The k values are: " << k1[0] << ", " << k2[0] << ", " << k3[0] << ", " << k4[0] << std::endl;
+        std::cout << "The k1 values are: " << k1[0] << ", " << k1[1] << ", " << k1[2] << ", " << k1[3] << std::endl;
         std::cout << "alpha: " << alpha << std::endl;
         std::cout << "velocity: " << velocity << std::endl;
 
@@ -782,7 +795,7 @@ std::vector<std::vector<double>> segment_simulator(
 
         // If the new segment starts and the intersection cannot be found (precision issues for double and a result of 
         // termination critera of last segment), inflate the lookaheads by 1%
-        if(while_loop_counter<=200 && (!found_intersection_flag)){
+        if(while_loop_counter<=LOOKAHEAD_INFLATION_STEPS && (!found_intersection_flag)){
             std::cout << "Inflation required!" << std::endl;
             if(is_forward){
                 forward_lookahead_radius = forward_lookahead_radius*1.01;
@@ -910,6 +923,7 @@ std::vector<std::vector<double>> segment_simulator(
     bool in_collision = false;
     double collision_check_distance_interval = 0.05;
     int collision_check_steps_interval = (int)(collision_check_distance_interval/(velocity*timestep));
+    // std::cout << "Collision check interval: " << collision_check_steps_interval << std::endl;
 
     std::cout << "Received segment start X: " << segment[0][0] << std::endl;
     std::cout << "Received segment start Y: " << segment[0][1] << std::endl;
@@ -971,7 +985,7 @@ std::vector<std::vector<double>> segment_simulator(
 
         // If the new segment starts and the intersection cannot be found (precision issues for double and a result of 
         // termination critera of last segment), inflate the lookaheads by 1%
-        if(while_loop_counter<=200 && (!found_intersection_flag)){
+        if(while_loop_counter<=LOOKAHEAD_INFLATION_STEPS && (!found_intersection_flag)){
             std::cout << "Inflation required!" << std::endl;
             if(is_forward){
                 forward_lookahead_radius = forward_lookahead_radius*1.01;
@@ -988,9 +1002,9 @@ std::vector<std::vector<double>> segment_simulator(
             }
         }
 
-        // if((while_loop_counter%20000)==0){
-        //     std::cout << "Intersection X: " << intersection_point[0] << ", Intersection Y: " << intersection_point[1] << "   ";
-        // }
+        if((while_loop_counter%20000)==0){
+            std::cout << "Intersection X: " << intersection_point[0] << ", Intersection Y: " << intersection_point[1] << std::endl; //<< "   ";
+        }
         // if(while_loop_counter==0){
         //     // Need to add condition that prevents intersection points outside the segment
         //     std::cout << "While loop counter: " << while_loop_counter << std::endl;
@@ -1056,9 +1070,11 @@ std::vector<std::vector<double>> segment_simulator(
         //     std::cout << "State X: " << q_next[0] << ", State Y: " << q_next[1] << std::endl;
         // }
 
-        if(while_loop_counter==collision_check_steps_interval){
-            if(cc.collision_check(q_next[0], q_next[1], q_next[2], (M_PI - q_next[3]), map, x_size, y_size)){
+        if((while_loop_counter%collision_check_steps_interval)==0){
+            std::cout << "Checking for collision" << std::endl;
+            if(cc.collision_check(q_next[0], q_next[1], q_next[2], (M_PI - q_next[3]), map, x_size, y_size)==1){
                 std::vector<std::vector<double>> empty_trajectory;
+                std::cout << "Vehicle in collision!" << std::endl;
                 return empty_trajectory;
             }
         }
@@ -1078,12 +1094,29 @@ std::vector<std::vector<double>> segment_simulator(
         // std::cout << "X value of last q_next state" << q_next[0] << std::endl;
         // std::cout << "Terminated intersection point is"
     }
+    if(!found_intersection_flag && while_loop_counter==(LOOKAHEAD_INFLATION_STEPS + 1)){
+        std::cout << "Simulation cut off since no intersection point found" << std::endl;
+        std::vector<std::vector<double>> empty_trajectory;
+        return empty_trajectory;
+        // std::cout << "X value of last q_next state" << q_next[0] << std::endl;
+        // std::cout << "Terminated intersection point is"
+    }
+    // Return an empty trajectory if the last intersection point is not close to the final intersection points
+    if(
+        !(check_double_equal(intersection_point[0], segment[segment.size()-1][0]) &&
+    check_double_equal(intersection_point[1], segment[segment.size()-1][1]))
+    ){
+        std::cout << "Did not reach the last lookahead point!" << std::endl;
+        std::vector<std::vector<double>> empty_trajectory;
+        return empty_trajectory;
+    }
     // std::cout<<"Trajectory size: "<<trajectory.size()<<std::endl;
     // if(trajectory.size()==0){
     //     std::cout << "Trajectory size is zero!" << std::endl;
     //     std::cout << "Segment X0: " << segment[0][0] << "Segment Y0: " << segment[0][1] << std::endl;
     //     std::cout << "Segment X1: " << segment[1][0] << "Segment Y1: " << segment[1][1] << std::endl;
     // }
+    std::cout << "Last simulated trailer x: " << q_current[0] << "     y: " << q_current[1] << std::endl;
     return trajectory;
 }
 

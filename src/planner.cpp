@@ -10,7 +10,7 @@
 #include "matplotlibcpp.h"
 #include "utils.hpp"
 
-#define SAMPLING_TRIALS 5000
+#define SAMPLING_TRIALS 10
 double map_side = 105;
 // double map_y = 105;
 
@@ -21,7 +21,7 @@ static void sample_control_point(
     // Initialize mersenne twister object
     // std::mt19937 mt(std::random_device{}());
     // static std::mt19937 mt(10);
-    static std::mt19937 mt(20);
+    static std::mt19937 mt(50);
 
 
 
@@ -354,6 +354,8 @@ std::vector<std::vector<double>> planner(
         planned_trajectory << segment[0] << ", " << segment[1] << std::endl;
     }
 
+    planned_trajectory << "Trajectory" << std::endl;
+
     for (auto& state : final_trajectory){
         planned_trajectory << state[0] << " " << state[1] << " " << state[2] << " " <<
         (M_PI - state[3]) << " " << state[4] << " " << state[5] << " " << state[6] << std::endl;
@@ -572,6 +574,8 @@ std::vector<std::vector<double>> planner(
         planned_trajectory << segment[0] << ", " << segment[1] << std::endl;
     }
 
+    planned_trajectory << "Trajectory" << std::endl;
+
     for (auto& state : final_trajectory){
         planned_trajectory << state[0] << " " << state[1] << " " << state[2] << " " <<
         (M_PI - state[3]) << " " << state[4] << " " << state[5] << " " << state[6] << std::endl;
@@ -772,8 +776,15 @@ int main(){
     // test_find_nearest_neighbor();
 
     // Load map from text file
-    std::tie(world_map, x_size, y_size) = loadMap("/home/steven/CMU/planning_project/maps/grid.txt");
-    planner(q_init, q_goal);
+    std::tie(world_map, x_size, y_size) = loadMap("/home/steven/CMU/planning_project/maps/map2.txt");
+    double height = y_size*0.05;
+    double width = x_size*0.05;
+    
+    // Instantiate collision checker object
+    CollisionCheck cc(TRACTOR_WHEELBASE, TRAILER_WHEELBASE, TRACTOR_HITCH_OFFSET);
+    //TODO: change cell size to real world size
+    // TODO: ensure map resolution is same between occupancy grid and that defined locally
+    planner(q_init, q_goal, cc, world_map, height, width);
     return 0;
 
 }

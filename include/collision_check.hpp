@@ -1,14 +1,14 @@
 #include <iostream>
 
-#define TRACTOR_WIDTH (0.0)
+#define TRACTOR_WIDTH (0.2)
 #define L1 (1.0)
 #define L2 (1.0)
 #define BODY (0.0)
 #define DIAMETER (0.0)
 // #define map_width (100.0)
 // #define map_height (100.0)
-#define MAP_RESOLUTION (0.1)
-#define RECT_RESOLUTION (0.1)
+#define MAP_RESOLUTION (0.05)
+#define RECT_RESOLUTION (0.05)
 #include <eigen3/Eigen/Dense>
 
 class CollisionCheck {
@@ -84,7 +84,7 @@ class CollisionCheck {
             this->l_tractor = tractor_wheelbase + tractor_hitch_offset;
             this->l_trailer = trailer_wheelbase;
         }
-        int collision_check(int x, int y, double beta, double theta, double* world_map, int map_height, int map_width) {
+        int collision_check(double x, double y, double beta, double theta, double* world_map, double map_height, double map_width) {
             
             bool collided = false;
             computeTransformMatrices(theta, beta, x, y);
@@ -113,7 +113,6 @@ class CollisionCheck {
                     break;
                 }
             }
-            return collided==true?0:1;
+            return collided==true?1:0;
         }
 };
-

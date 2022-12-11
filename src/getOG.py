@@ -86,10 +86,10 @@ def img_toGrid(img,height,width):
     grid[grid >= 128] = 0
 
     # Save the occupancy grid as a text file
-    np.savetxt('OG.txt', grid, fmt='%d')
+    np.savetxt('../maps/OG.txt', grid, fmt='%d')
 
 if __name__ == "__main__":
-    vertices_list, world_height,world_width, res = read_file('mapinfo.txt')
+    vertices_list, world_height,world_width, res = read_file('../input/mapinfo.txt')
    
     # Define the width and height of the image
     width = int(world_width*(1.0/res))
