@@ -1,0 +1,13 @@
+function rk4(f, x, h)
+    %TODO: implement
+    xnext = zero(x);
+    
+    % SOLUTION
+    k1 = f(x)
+    k2 = f(x + 0.5*h*k1)
+    k3 = f(x + 0.5*h*k2)
+    k4 = f(x + h*k3)
+    xnext = x + (1/6 )*(k1 + 2k2 + 2k3 + k4)* h
+    
+    return xnext
+end
