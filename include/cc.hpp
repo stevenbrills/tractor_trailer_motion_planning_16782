@@ -1,7 +1,7 @@
 #include <iostream>
-#define TRACTOR_WIDTH (0.2)
-#define L1 (1.0)
-#define L2 (0.8)
+#define TRACTOR_WIDTH (0.1)
+#define L1 (0.5)
+#define L2 (0.3)
 #define BODY (0.2)
 #define DIAMETER (0.0)
 // #define map_width (20)
